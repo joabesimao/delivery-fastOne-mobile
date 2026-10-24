@@ -7,7 +7,7 @@ App Expo (React Native) único para **entregador** e **gestor/operador**, consum
 - **Feature-first + Clean Architecture por módulo.** Cada domínio de negócio (`auth`, `deliveries`, `fleet`, `notifications`…) é um módulo isolado com as mesmas camadas do backend. Times/PRs crescem por módulo sem conflito.
 - **Regra de dependência:** as setas apontam para dentro. `presentation → data → domain`; `infra` implementa protocolos de `data`. O `domain` é TypeScript puro. O ESLint (`no-restricted-imports`) quebra o build se alguém violar isso.
 - **Composition root único** em `src/main`: é o único lugar que conhece as implementações concretas (fetch, SecureStore, socket). Trocar uma implementação (ex.: axios, MMKV) mexe só ali.
-- **Estado de servidor ≠ estado de cliente.** Dados da API vivem no react-query (cache, dedupe, paginação). Zustand guarda só a sessão.
+- **Estado de servidor ≠ estado de cliente.** Dados da API vivem no react-query (cache, dedupe, paginação). A sessão vive no `SessionManager` (fonte única), lido pela UI com `useSyncExternalStore`.
 - **Toda resposta da API é validada na borda** (zod nos DTOs + mapper para entidade). Contrato quebrado vira erro tipado, não `undefined` no meio da tela.
 - **Regra de autorização fica no backend.** O app só esconde botões.
 
@@ -37,9 +37,33 @@ Muitos aparelhos falando com a mesma API exigem que o cliente seja "bem-comporta
 - **Timeout** em toda requisição (AbortController) e cancelamento quando a tela sai.
 - **Retry só no que é seguro:** métodos idempotentes, erro de rede/5xx/429, com **backoff exponencial + jitter** (evita que milhares de apps batam juntos após uma queda) e respeito ao `Retry-After`.
 - **Refresh de token single-flight:** várias requisições com 401 disparam um único refresh.
-- **Paginação** (`useInfiniteQuery`) e listas virtualizadas; nada de "baixar tudo".
+- **Paginação** (`useInfiniteQuery`) onde a API pagina (avisos) e listas virtualizadas.
 - **Tempo real com moderação:** socket invalida cache em vez de recarregar tudo; reconexão com backoff.
 - **Offline-aware:** NetInfo alimenta o `onlineManager`; ações bloqueadas sem rede no MVP.
+
+## Rotas e perfis
+
+```
+src/app/
+  login.tsx                  só sem sessão
+  index.tsx                  redireciona: entregador → /deliveries, gestor → /dashboard
+  (tabs)/                    abas; Tabs.Protected esconde as de outro perfil
+    dashboard  chat          gestor (admin, gerente_estoque, user)
+    fleet                    entregador
+    deliveries notifications profile   todos
+  delivery/[id].tsx          detalhe da entrega (todos)
+  fuel-refill.tsx  oil-change.tsx      formulários da frota (entregador)
+```
+
+## Adaptações à API atual
+
+O app usa a API como ela está hoje. Enquanto os PRs do backend do plano não saem:
+
+- **Sem `/me` e sem vínculo conta → entregador.** Nome e perfil vêm da resposta do `/login`; o id da conta vem do evento `session:ready` do socket. O entregador escolhe "meu veículo" uma vez (salvo no aparelho), e o `deliverymanId` desse veículo separa as entregas dele **na tela**. A API ainda devolve todos os pedidos da unidade (falha 1 do plano): esconder no app não é controle de acesso.
+- **Sem paginação em `/orderDelivery`.** A lista vem inteira e é filtrada no aparelho, com `FlatList` virtualizada.
+- **Status:** só avança (`actived → delivered → finished`). O PUT de "finalizar" não é repetido automaticamente, porque o backend responde 409 para `finished → finished`.
+- **Push e foto de comprovante** dependem dos PRs 5 a 8 do backend e de um _development build_.
+- **Chat:** só texto. Mensagens com imagem aparecem como aviso para abrir no painel.
 
 ## Fluxo de trabalho
 

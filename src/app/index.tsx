@@ -1,14 +1,9 @@
-import { StyleSheet, Text, View } from "react-native";
+import { isCourier } from "@/modules/auth/domain/Session";
+import { useSession } from "@/modules/auth/presentation/useSession";
+import { Redirect } from "expo-router";
 
+// Cada perfil abre na sua tela principal.
 export default function Index() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>FastOne</Text>
-    </View>
-  );
+  const { role } = useSession();
+  return <Redirect href={isCourier(role) ? "/deliveries" : "/dashboard"} />;
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center" },
-  title: { fontSize: 24, fontWeight: "700" },
-});
