@@ -1,4 +1,13 @@
-import { currencyInputMask, formatRelative, parseDecimal, phoneMask } from "./format";
+import {
+  cpfMask,
+  currencyInputMask,
+  formatCurrencyInput,
+  formatRelative,
+  isoDay,
+  isValidCpf,
+  parseDecimal,
+  phoneMask,
+} from "./format";
 
 describe("format", () => {
   it("formata telefone fixo e celular", () => {
@@ -25,5 +34,24 @@ describe("format", () => {
     expect(formatRelative(new Date("2026-10-24T11:15:00"), now)).toBe("há 45 min");
     expect(formatRelative(new Date("2026-10-24T09:00:00"), now)).toBe("há 3 h");
     expect(formatRelative(new Date("2026-10-20T09:00:00"), now)).toBe("20/10/2026");
+  });
+
+  it("aplica a máscara de CPF", () => {
+    expect(cpfMask("52998224725")).toBe("529.982.247-25");
+    expect(cpfMask("5299")).toBe("529.9");
+  });
+
+  it("valida os dígitos verificadores do CPF", () => {
+    expect(isValidCpf("529.982.247-25")).toBe(true);
+    expect(isValidCpf("529.982.247-24")).toBe(false);
+    expect(isValidCpf("111.111.111-11")).toBe(false);
+  });
+
+  it("preenche o campo de valor a partir de um número", () => {
+    expect(formatCurrencyInput(1234.5)).toBe("1.234,50");
+  });
+
+  it("formata o dia local em AAAA-MM-DD", () => {
+    expect(isoDay(new Date(2026, 0, 5, 23, 59))).toBe("2026-01-05");
   });
 });

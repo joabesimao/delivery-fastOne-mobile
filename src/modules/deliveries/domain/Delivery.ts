@@ -74,6 +74,43 @@ export const matchesSearch = (delivery: Delivery, term: string): boolean => {
   return haystack.includes(query);
 };
 
+export interface DeliveryFilters {
+  // null = sem filtro; 0 = "sem entregador".
+  deliverymanId: number | null;
+  city: string | null;
+  neighborhood: string | null;
+}
+
+export const NO_FILTERS: DeliveryFilters = { deliverymanId: null, city: null, neighborhood: null };
+
+export const activeFilterCount = (f: DeliveryFilters) =>
+  [f.deliverymanId, f.city, f.neighborhood].filter((v) => v !== null).length;
+
+// Mesmos filtros da listagem de entregas do painel web.
+export const matchesFilters = (delivery: Delivery, f: DeliveryFilters): boolean =>
+  (f.deliverymanId === null || (delivery.deliveryman?.id ?? 0) === f.deliverymanId) &&
+  (f.city === null || delivery.address.city === f.city) &&
+  (f.neighborhood === null || delivery.address.neighborhood === f.neighborhood);
+
+// Opções dos filtros a partir das próprias entregas (só aparece o que existe na lista).
+export const filterOptions = (deliveries: readonly Delivery[], city: string | null) => {
+  const sorted = (values: Iterable<string>) =>
+    [...new Set(values)].filter(Boolean).sort((a, b) => a.localeCompare(b));
+  const people = new Map<number, string>();
+  for (const d of deliveries) if (d.deliveryman) people.set(d.deliveryman.id, d.deliveryman.name);
+  return {
+    deliverymen: [...people]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+    cities: sorted(deliveries.map((d) => d.address.city)),
+    neighborhoods: sorted(
+      deliveries
+        .filter((d) => city === null || d.address.city === city)
+        .map((d) => d.address.neighborhood),
+    ),
+  };
+};
+
 // Abertas primeiro (as mais antigas no topo: são as mais urgentes); finalizadas, as mais recentes primeiro.
 export const sortForWork = (deliveries: readonly Delivery[]): Delivery[] =>
   [...deliveries].sort((a, b) => {

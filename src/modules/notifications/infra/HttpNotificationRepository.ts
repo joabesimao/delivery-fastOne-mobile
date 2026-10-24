@@ -3,6 +3,7 @@ import { parseResponse } from "@/core/http/parseResponse";
 import { z } from "zod";
 import {
   NOTIFICATION_TYPES,
+  type BroadcastInput,
   type AppNotification,
   type NotificationPage,
   type NotificationRepository,
@@ -65,5 +66,18 @@ export class HttpNotificationRepository implements NotificationRepository {
 
   async markAllRead(): Promise<void> {
     await this.http.request({ method: "PUT", path: "/notifications/read-all", body: {} });
+  }
+
+  async remove(id: number): Promise<void> {
+    await this.http.request({ method: "DELETE", path: `/notifications/${id}` });
+  }
+
+  async broadcast({ title, body, roles }: BroadcastInput): Promise<number> {
+    const data = await this.http.request({
+      method: "POST",
+      path: "/notifications/broadcast",
+      body: { title: title.trim(), body: body.trim(), ...(roles.length > 0 && { roles }) },
+    });
+    return parseResponse(z.object({ recipients: z.number() }), data).recipients;
   }
 }

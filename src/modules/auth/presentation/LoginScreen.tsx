@@ -1,6 +1,7 @@
+import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { container } from "@/main/container";
 import { describeError } from "@/shared/errors";
-import { colors, font, radius, spacing } from "@/shared/theme";
+import { font, radius, spacing } from "@/shared/theme";
 import { Banner, Button, TextField } from "@/shared/ui";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRef, useState } from "react";
@@ -9,7 +10,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
   type TextInputInstance,
@@ -20,6 +20,8 @@ import { useSessionState } from "./useSession";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { signOutReason } = useSessionState();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,7 +64,7 @@ export function LoginScreen() {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
             <View style={styles.logo}>
-              <Ionicons name="bicycle" size={36} color={colors.white} />
+              <Ionicons name="bicycle" size={36} color={colors.onPrimary} />
             </View>
             <Text style={styles.title}>FastOne</Text>
             <Text style={styles.subtitle}>Entre com a conta usada no painel.</Text>
@@ -127,7 +129,7 @@ export function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   content: { flexGrow: 1, justifyContent: "center", padding: spacing.xl, gap: spacing.xxl },
@@ -145,4 +147,4 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: font.body, color: colors.textMuted },
   form: { gap: spacing.lg },
   eye: { position: "absolute", right: spacing.md, top: 38 },
-});
+}));

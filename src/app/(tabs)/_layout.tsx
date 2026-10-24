@@ -1,11 +1,11 @@
 import { isCourier } from "@/modules/auth/domain/Session";
 import { useSession } from "@/modules/auth/presentation/useSession";
 import { useUnreadCount } from "@/modules/notifications/presentation/hooks";
-import { colors } from "@/shared/theme";
+import { useTheme } from "@/shared/ThemeProvider";
 import type { IconName } from "@/shared/ui";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Tabs } from "expo-router";
-import type { ColorValue } from "react-native";
+import { Tabs, useRouter, type Href } from "expo-router";
+import { Pressable, type ColorValue } from "react-native";
 
 const icon = (name: IconName) => {
   const TabIcon = ({ color, size }: { color: ColorValue; size: number }) => (
@@ -14,7 +14,30 @@ const icon = (name: IconName) => {
   return TabIcon;
 };
 
+// Atalho no cabeçalho (busca global, busca no chat).
+function HeaderAction({ name, label, href }: { name: IconName; label: string; href: Href }) {
+  const router = useRouter();
+  const { colors } = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      hitSlop={10}
+      onPress={() => router.push(href)}
+      style={{ paddingHorizontal: 16 }}
+    >
+      <Ionicons name={name} size={22} color={colors.primary} />
+    </Pressable>
+  );
+}
+
+const searchAction = () => <HeaderAction name="search" label="Buscar" href="/search" />;
+const chatSearchAction = () => (
+  <HeaderAction name="search" label="Buscar no chat" href="/chat-search" />
+);
+
 export default function TabsLayout() {
+  const { colors } = useTheme();
   const { role } = useSession();
   const courier = isCourier(role);
   const unread = useUnreadCount();
@@ -25,6 +48,8 @@ export default function TabsLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
+        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+        headerStyle: { backgroundColor: colors.surface },
         headerTitleStyle: { color: colors.text },
         sceneStyle: { backgroundColor: colors.background },
       }}
@@ -32,7 +57,7 @@ export default function TabsLayout() {
       <Tabs.Protected guard={!courier}>
         <Tabs.Screen
           name="dashboard"
-          options={{ title: "Painel", tabBarIcon: icon("grid-outline") }}
+          options={{ title: "Painel", tabBarIcon: icon("grid-outline"), headerRight: searchAction }}
         />
       </Tabs.Protected>
 
@@ -42,6 +67,7 @@ export default function TabsLayout() {
           title: courier ? "Minhas entregas" : "Entregas",
           tabBarLabel: "Entregas",
           tabBarIcon: icon("cube-outline"),
+          headerRight: courier ? undefined : searchAction,
         }}
       />
 
@@ -52,7 +78,11 @@ export default function TabsLayout() {
       <Tabs.Protected guard={!courier}>
         <Tabs.Screen
           name="chat"
-          options={{ title: "Chat", tabBarIcon: icon("chatbubbles-outline") }}
+          options={{
+            title: "Chat",
+            tabBarIcon: icon("chatbubbles-outline"),
+            headerRight: chatSearchAction,
+          }}
         />
       </Tabs.Protected>
 
@@ -60,10 +90,18 @@ export default function TabsLayout() {
         name="notifications"
         options={{ title: "Avisos", tabBarIcon: icon("notifications-outline"), tabBarBadge: badge }}
       />
-      <Tabs.Screen
-        name="profile"
-        options={{ title: "Perfil", tabBarIcon: icon("person-outline") }}
-      />
+
+      <Tabs.Protected guard={courier}>
+        <Tabs.Screen
+          name="profile"
+          options={{ title: "Perfil", tabBarIcon: icon("person-outline") }}
+        />
+      </Tabs.Protected>
+
+      {/* Gestor: perfil + todos os módulos do menu lateral do web. */}
+      <Tabs.Protected guard={!courier}>
+        <Tabs.Screen name="more" options={{ title: "Mais", tabBarIcon: icon("menu-outline") }} />
+      </Tabs.Protected>
     </Tabs>
   );
 }

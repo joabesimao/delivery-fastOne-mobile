@@ -8,7 +8,7 @@ import {
   type DeliveryPerson,
   type DeliveryStatus,
 } from "../domain/Delivery";
-import type { DeliveryRepository } from "../domain/DeliveryRepository";
+import type { DeliveryRepository, NewDelivery } from "../domain/DeliveryRepository";
 
 const deliverymanSchema = z.object({
   id: z.number(),
@@ -66,6 +66,16 @@ export const toDelivery = (dto: OrderDto): Delivery => ({
 
 export class HttpDeliveryRepository implements DeliveryRepository {
   constructor(private readonly http: HttpClient) {}
+
+  async create({ deliverymanId, ...input }: NewDelivery): Promise<{ id: number | null }> {
+    const data = await this.http.request({
+      method: "POST",
+      path: "/orderDelivery",
+      body: { ...input, ...(deliverymanId !== null && { deliverymanId }) },
+    });
+    const parsed = z.object({ id: z.number() }).safeParse(data);
+    return { id: parsed.success ? parsed.data.id : null };
+  }
 
   async list(signal?: AbortSignal): Promise<Delivery[]> {
     const data = await this.http.request({ method: "GET", path: "/orderDelivery", signal });

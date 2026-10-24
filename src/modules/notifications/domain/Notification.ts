@@ -1,3 +1,5 @@
+import type { AccountRole } from "@/modules/auth/domain/Session";
+
 export const NOTIFICATION_TYPES = [
   "chat_message",
   "oil_change_due",
@@ -28,7 +30,20 @@ export interface NotificationRepository {
   unreadCount(signal?: AbortSignal): Promise<number>;
   markRead(id: number): Promise<void>;
   markAllRead(): Promise<void>;
+  remove(id: number): Promise<void>;
+  // Aviso geral do admin; devolve quantas contas receberam.
+  broadcast(input: BroadcastInput): Promise<number>;
 }
+
+export interface BroadcastInput {
+  title: string;
+  body: string;
+  // Vazio = todos os perfis.
+  roles: AccountRole[];
+}
+
+export const BROADCAST_TITLE_MAX = 191;
+export const BROADCAST_BODY_MAX = 2000;
 
 export const isUnread = (notification: AppNotification) => notification.readAt === null;
 
@@ -40,10 +55,19 @@ export const notificationIcons: Record<NotificationType, string> = {
   admin_notice: "megaphone-outline",
 };
 
-// Os links do backend apontam para rotas do painel web; no app viram a aba equivalente.
-export const appRouteForLink = (link: string | null): "/chat" | "/fleet" | null => {
+export type NotificationRoute = "/chat" | "/fleet" | "/fuel-refills" | "/oil-changes";
+
+// Os links do backend apontam para rotas do painel web; no app viram a tela equivalente.
+// O entregador vê a frota na aba dele; o gestor vai para a listagem de registros.
+export const appRouteForLink = (
+  link: string | null,
+  courier: boolean,
+): NotificationRoute | null => {
   if (!link) return null;
-  if (link.startsWith("/chat")) return "/chat";
-  if (/troca-oleo|abastecimento|oil|fuel|frota/.test(link)) return "/fleet";
-  return null;
+  if (link.startsWith("/chat")) return courier ? null : "/chat";
+  const oil = /troca-oleo|oil/.test(link);
+  const fuel = /abastecimento|fuel/.test(link);
+  if (!oil && !fuel && !/frota/.test(link)) return null;
+  if (courier) return "/fleet";
+  return oil ? "/oil-changes" : "/fuel-refills";
 };

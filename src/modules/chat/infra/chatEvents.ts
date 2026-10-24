@@ -7,12 +7,14 @@ export const CHAT_EVENTS = {
   deleted: "chat:message-deleted",
   typing: "chat:typing",
   send: "chat:send",
+  remove: "chat:delete-message",
 } as const;
 
 const messageSchema = z.object({
   id: z.number(),
   text: z.string().nullish(),
   imageBase64: z.string().nullish(),
+  imageMimeType: z.string().nullish(),
   createdAt: z.string(),
   sender: z.object({ id: z.number(), name: z.string() }),
   unitStore: z.object({ name: z.string() }).nullish(),
@@ -21,7 +23,9 @@ const messageSchema = z.object({
 const toChatMessage = (dto: z.infer<typeof messageSchema>): ChatMessage => ({
   id: dto.id,
   text: dto.text ?? null,
-  hasImage: Boolean(dto.imageBase64),
+  image: dto.imageBase64
+    ? { base64: dto.imageBase64, mimeType: dto.imageMimeType ?? "image/jpeg" }
+    : null,
   createdAt: new Date(dto.createdAt),
   sender: dto.sender,
   unitName: dto.unitStore?.name ?? "",
@@ -41,6 +45,18 @@ export const parseChatHistory = (payload: unknown): ChatMessage[] =>
 export const parseDeletedId = (payload: unknown): number | null => {
   const parsed = z.object({ messageId: z.number() }).safeParse(payload);
   return parsed.success ? parsed.data.messageId : null;
+};
+
+export const parseSearchPage = (payload: unknown) => {
+  const parsed = z
+    .object({
+      messages: z.array(z.unknown()),
+      pagination: z.object({ total: z.number() }).nullish(),
+    })
+    .safeParse(payload);
+  if (!parsed.success) return null;
+  const messages = parseChatHistory(parsed.data.messages);
+  return { messages, total: parsed.data.pagination?.total ?? messages.length };
 };
 
 export const sendAckSchema = z.object({ ok: z.boolean(), error: z.string().optional() });

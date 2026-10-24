@@ -1,19 +1,16 @@
+import { makeStyles, useTheme } from "@/shared/ThemeProvider";
+import { isAdmin, isCourier } from "@/modules/auth/domain/Session";
+import { useSession } from "@/modules/auth/presentation/useSession";
+import { confirm, Fab } from "@/shared/layout";
+import { Chip } from "@/shared/inputs";
 import { describeError } from "@/shared/errors";
 import { formatRelative } from "@/shared/format";
-import { colors, font, radius, spacing } from "@/shared/theme";
+import { font, radius, spacing } from "@/shared/theme";
 import { Button, EmptyState, ErrorState, LoadingState, type IconName } from "@/shared/ui";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
-import { useCallback, useMemo } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import {
   appRouteForLink,
   isUnread,
@@ -24,28 +21,41 @@ import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
+  useRemoveNotification,
   useUnreadCount,
 } from "./hooks";
 
 export function NotificationsScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const router = useRouter();
   const notifications = useNotifications();
   const unread = useUnreadCount();
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
+  const remove = useRemoveNotification();
+  const { role } = useSession();
+  const [onlyUnread, setOnlyUnread] = useState(false);
 
-  const items = useMemo(
-    () => notifications.data?.pages.flatMap((page) => page.items) ?? [],
-    [notifications.data],
-  );
+  const items = useMemo(() => {
+    const all = notifications.data?.pages.flatMap((page) => page.items) ?? [];
+    return onlyUnread ? all.filter(isUnread) : all;
+  }, [notifications.data, onlyUnread]);
 
   const open = useCallback(
     (notification: AppNotification) => {
       if (isUnread(notification)) markRead.mutate(notification.id);
-      const route = appRouteForLink(notification.link);
+      const route = appRouteForLink(notification.link, isCourier(role));
       if (route) router.navigate(route);
     },
-    [markRead, router],
+    [markRead, router, role],
+  );
+
+  const askRemove = useCallback(
+    async (notification: AppNotification) => {
+      if (await confirm("Excluir aviso?", notification.title)) remove.mutate(notification.id);
+    },
+    [remove],
   );
 
   if (notifications.isPending) return <LoadingState message="Carregando avisos..." />;
@@ -56,71 +66,96 @@ export function NotificationsScreen() {
   }
 
   return (
-    <FlatList
-      data={items}
-      keyExtractor={(item) => String(item.id)}
-      contentContainerStyle={styles.list}
-      renderItem={({ item }) => <NotificationRow notification={item} onPress={open} />}
-      ItemSeparatorComponent={Separator}
-      onEndReachedThreshold={0.4}
-      onEndReached={() => {
-        if (notifications.hasNextPage && !notifications.isFetchingNextPage) {
-          void notifications.fetchNextPage();
+    <View style={styles.flex}>
+      <FlatList
+        data={items}
+        keyExtractor={(item) => String(item.id)}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <NotificationRow notification={item} onPress={open} onLongPress={askRemove} />
+        )}
+        ItemSeparatorComponent={Separator}
+        onEndReachedThreshold={0.4}
+        onEndReached={() => {
+          if (notifications.hasNextPage && !notifications.isFetchingNextPage) {
+            void notifications.fetchNextPage();
+          }
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={notifications.isRefetching && !notifications.isFetchingNextPage}
+            onRefresh={() => {
+              void notifications.refetch();
+              void unread.refetch();
+            }}
+            colors={[colors.primary]}
+          />
         }
-      }}
-      refreshControl={
-        <RefreshControl
-          refreshing={notifications.isRefetching && !notifications.isFetchingNextPage}
-          onRefresh={() => {
-            void notifications.refetch();
-            void unread.refetch();
-          }}
-          colors={[colors.primary]}
-        />
-      }
-      ListHeaderComponent={
-        (unread.data ?? 0) > 0 ? (
-          <View style={styles.header}>
-            <Text style={styles.headerText}>{unread.data} não lido(s)</Text>
-            <Button
-              title="Marcar todos como lidos"
-              variant="ghost"
-              icon="checkmark-done"
-              loading={markAll.isPending}
-              onPress={() => markAll.mutate()}
-            />
+        ListHeaderComponent={
+          <View style={styles.headerBlock}>
+            <View style={styles.filters}>
+              <Chip label="Todos" selected={!onlyUnread} onPress={() => setOnlyUnread(false)} />
+              <Chip label="Não lidos" selected={onlyUnread} onPress={() => setOnlyUnread(true)} />
+            </View>
+            {(unread.data ?? 0) > 0 ? (
+              <View style={styles.header}>
+                <Text style={styles.headerText}>{unread.data} não lido(s)</Text>
+                <Button
+                  title="Marcar todos como lidos"
+                  variant="ghost"
+                  icon="checkmark-done"
+                  loading={markAll.isPending}
+                  onPress={() => markAll.mutate()}
+                />
+              </View>
+            ) : null}
+            {items.length > 0 ? (
+              <Text style={styles.hint}>Toque e segure um aviso para excluir.</Text>
+            ) : null}
           </View>
-        ) : undefined
-      }
-      ListFooterComponent={
-        notifications.isFetchingNextPage ? (
-          <ActivityIndicator style={styles.footer} color={colors.primary} />
-        ) : undefined
-      }
-      ListEmptyComponent={
-        <EmptyState
-          icon="notifications-off-outline"
-          title="Nenhum aviso"
-          description="Avisos da gestão, do chat e da frota aparecem aqui."
+        }
+        ListFooterComponent={
+          notifications.isFetchingNextPage ? (
+            <ActivityIndicator style={styles.footer} color={colors.primary} />
+          ) : undefined
+        }
+        ListEmptyComponent={
+          <EmptyState
+            icon="notifications-off-outline"
+            title="Nenhum aviso"
+            description="Avisos da gestão, do chat e da frota aparecem aqui."
+          />
+        }
+      />
+      {isAdmin(role) ? (
+        <Fab
+          label="Enviar aviso"
+          icon="megaphone-outline"
+          onPress={() => router.push("/broadcast")}
         />
-      }
-    />
+      ) : null}
+    </View>
   );
 }
 
 function NotificationRow({
   notification,
   onPress,
+  onLongPress,
 }: {
   notification: AppNotification;
   onPress: (notification: AppNotification) => void;
+  onLongPress: (notification: AppNotification) => void;
 }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const unread = isUnread(notification);
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${unread ? "Não lido. " : ""}${notification.title}`}
       onPress={() => onPress(notification)}
+      onLongPress={() => onLongPress(notification)}
       style={({ pressed }) => [styles.row, unread && styles.rowUnread, pressed && styles.pressed]}
     >
       <View style={styles.icon}>
@@ -146,11 +181,17 @@ function NotificationRow({
   );
 }
 
-const Separator = () => <View style={styles.separator} />;
+function Separator() {
+  const styles = useStyles();
+  return <View style={styles.separator} />;
+}
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
-  list: { padding: spacing.lg, flexGrow: 1 },
+  list: { padding: spacing.lg, paddingBottom: 96, flexGrow: 1 },
+  headerBlock: { gap: spacing.sm, marginBottom: spacing.md },
+  filters: { flexDirection: "row", gap: spacing.sm },
+  hint: { fontSize: font.caption, color: colors.textSubtle },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -185,4 +226,4 @@ const styles = StyleSheet.create({
   time: { fontSize: font.caption, color: colors.textSubtle },
   body: { fontSize: font.small, color: colors.textMuted, marginTop: 2 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary, marginTop: 6 },
-});
+}));

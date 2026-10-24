@@ -1,7 +1,7 @@
 export interface ChatMessage {
   id: number;
   text: string | null;
-  hasImage: boolean;
+  image: { base64: string; mimeType: string } | null;
   createdAt: Date;
   sender: { id: number; name: string };
   unitName: string;
@@ -14,6 +14,18 @@ export interface TypingEvent {
 }
 
 export const MAX_MESSAGE_LENGTH = 2000;
+
+// Dono da mensagem ou admin podem apagar (mesma regra do socket).
+export const canDeleteMessage = (
+  message: Pick<ChatMessage, "sender">,
+  accountId: number | null,
+  isAdmin: boolean,
+) => isAdmin || (accountId !== null && message.sender.id === accountId);
+
+export interface ChatSearchPage {
+  messages: ChatMessage[];
+  total: number;
+}
 
 export const normalizeOutgoing = (text: string): string | null => {
   const trimmed = text.trim();

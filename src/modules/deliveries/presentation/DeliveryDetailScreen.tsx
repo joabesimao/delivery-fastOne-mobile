@@ -1,9 +1,10 @@
+import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { useIsOnline } from "@/core/query/useIsOnline";
 import { isCourier } from "@/modules/auth/domain/Session";
 import { useSession } from "@/modules/auth/presentation/useSession";
 import { describeError } from "@/shared/errors";
 import { formatCurrency, formatDateTime, phoneDigits, phoneMask } from "@/shared/format";
-import { colors, font, radius, spacing } from "@/shared/theme";
+import { font, radius, spacing } from "@/shared/theme";
 import { Banner, Button, Card, ErrorState, InfoRow, LoadingState } from "@/shared/ui";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams } from "expo-router";
@@ -16,7 +17,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -52,6 +52,8 @@ const openUrl = (url: string, failure: string) =>
   Linking.openURL(url).catch(() => Alert.alert("Não foi possível abrir", failure));
 
 export function DeliveryDetailScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const params = useLocalSearchParams<{ id: string }>();
   const id = Number(params.id);
   const { role } = useSession();
@@ -259,6 +261,8 @@ function DeliverymanPicker({
   onClose: () => void;
   onSelect: (person: DeliveryPerson) => void;
 }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const deliverymen = useDeliverymen(visible);
 
   return (
@@ -300,7 +304,7 @@ function DeliverymanPicker({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
   titleRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
@@ -338,4 +342,4 @@ const styles = StyleSheet.create({
   optionPressed: { backgroundColor: colors.background },
   optionTitle: { fontSize: font.body, fontWeight: "600", color: colors.text },
   optionSubtitle: { fontSize: font.small, color: colors.textMuted },
-});
+}));

@@ -1,6 +1,7 @@
+import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { describeError } from "@/shared/errors";
 import { formatCurrency, formatDate, formatNumber } from "@/shared/format";
-import { colors, font, radius, spacing } from "@/shared/theme";
+import { font, radius, spacing, type ThemeColors } from "@/shared/theme";
 import {
   Badge,
   Button,
@@ -13,7 +14,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import {
   consumptionKmPerLiter,
   lastKnownKm,
@@ -58,6 +59,8 @@ function VehicleChooser({
   onDone: () => void;
   onCancel?: () => void;
 }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const setMyVehicle = useSetMyVehicle();
 
   if (vehicles.length === 0) {
@@ -117,12 +120,14 @@ function VehicleChooser({
   );
 }
 
-const oilPalette: Record<OilChangeStatus["kind"], { fg: string; bg: string; label: string }> = {
+const oilPalette = (
+  colors: ThemeColors,
+): Record<OilChangeStatus["kind"], { fg: string; bg: string; label: string }> => ({
   unknown: { fg: colors.textMuted, bg: colors.border, label: "Sem registro" },
   ok: { fg: colors.success, bg: colors.successSoft, label: "Em dia" },
   soon: { fg: colors.warning, bg: colors.warningSoft, label: "Troca próxima" },
   overdue: { fg: colors.danger, bg: colors.dangerSoft, label: "Troca vencida" },
-};
+});
 
 function VehicleOverview({
   vehicle,
@@ -131,13 +136,15 @@ function VehicleOverview({
   vehicle: Vehicle;
   onChangeVehicle: () => void;
 }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const router = useRouter();
   const refills = useFuelRefills(vehicle.id);
   const oilChanges = useOilChanges(vehicle.id);
 
   const currentKm = lastKnownKm(refills.data ?? [], oilChanges.data ?? []);
   const oil = oilChangeStatus(oilChanges.data?.[0], currentKm);
-  const palette = oilPalette[oil.kind];
+  const palette = oilPalette(colors)[oil.kind];
   const refreshing = refills.isRefetching || oilChanges.isRefetching;
 
   return (
@@ -255,7 +262,7 @@ function VehicleOverview({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
   heading: { fontSize: font.heading - 2, fontWeight: "800", color: colors.text },
@@ -302,4 +309,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: spacing.md,
   },
-});
+}));

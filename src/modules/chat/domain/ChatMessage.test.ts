@@ -1,9 +1,15 @@
-import { mergeMessages, normalizeOutgoing, typingLabel, type ChatMessage } from "./ChatMessage";
+import {
+  canDeleteMessage,
+  mergeMessages,
+  normalizeOutgoing,
+  typingLabel,
+  type ChatMessage,
+} from "./ChatMessage";
 
 const message = (id: number, minute: number, text = `m${id}`): ChatMessage => ({
   id,
   text,
-  hasImage: false,
+  image: null,
   createdAt: new Date(2026, 9, 24, 12, minute),
   sender: { id: 1, name: "Ana" },
   unitName: "Matriz",
@@ -28,5 +34,12 @@ describe("ChatMessage", () => {
     expect(typingLabel([])).toBeNull();
     expect(typingLabel(["Ana"])).toBe("Ana está digitando...");
     expect(typingLabel(["Ana", "Bia"])).toBe("2 pessoas estão digitando...");
+  });
+
+  it("só o autor ou o admin apagam a mensagem", () => {
+    expect(canDeleteMessage(message(1, 1), 1, false)).toBe(true);
+    expect(canDeleteMessage(message(1, 1), 2, false)).toBe(false);
+    expect(canDeleteMessage(message(1, 1), 2, true)).toBe(true);
+    expect(canDeleteMessage(message(1, 1), null, false)).toBe(false);
   });
 });

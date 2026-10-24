@@ -32,3 +32,12 @@ export const isAccountRole = (value: unknown): value is AccountRole =>
   typeof value === "string" && (ACCOUNT_ROLES as readonly string[]).includes(value);
 
 export const firstName = (name: string): string => name.trim().split(/\s+/)[0] ?? name;
+
+// Espelha os grupos de papéis do backend (src/main/config/roles.ts). O app só esconde;
+// quem bloqueia de verdade é a API.
+export const canOperate = (role: AccountRole): boolean => role !== "entregador";
+
+export const isFleetManager = (role: AccountRole): boolean =>
+  role === "admin" || role === "gerente_estoque";
+
+export const isAdmin = (role: AccountRole): boolean => role === "admin";

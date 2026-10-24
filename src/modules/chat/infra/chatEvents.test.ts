@@ -7,10 +7,10 @@ describe("chatEvents", () => {
       { id: "x" },
     ]);
     expect(history).toHaveLength(1);
-    expect(history[0]).toMatchObject({ id: 1, text: "oi", hasImage: false, unitName: "" });
+    expect(history[0]).toMatchObject({ id: 1, text: "oi", image: null, unitName: "" });
   });
 
-  it("marca mensagens com imagem sem carregar o base64 na entidade", () => {
+  it("lê a imagem da mensagem com o tipo informado", () => {
     const message = parseChatMessage({
       id: 2,
       text: null,
@@ -19,8 +19,11 @@ describe("chatEvents", () => {
       sender: { id: 2, name: "Bia" },
       unitStore: { name: "Filial" },
     });
-    expect(message).toMatchObject({ hasImage: true, text: null, unitName: "Filial" });
-    expect(message).not.toHaveProperty("imageBase64");
+    expect(message).toMatchObject({
+      image: { base64: "AAAA", mimeType: "image/jpeg" },
+      text: null,
+      unitName: "Filial",
+    });
   });
 
   it("lê o id da mensagem apagada", () => {
