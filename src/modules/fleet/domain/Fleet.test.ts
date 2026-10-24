@@ -5,6 +5,8 @@ import {
   oilChangeStatus,
   validateFuelRefill,
   validateOilChange,
+  validateOilInterval,
+  validateVehicle,
   vehicleLabel,
   type OilChange,
 } from "./Fleet";
@@ -13,6 +15,8 @@ const oilChange = (nextChangeKm: number): OilChange => ({
   id: 1,
   vehicleId: 1,
   vehiclePlate: "ABC1D23",
+  deliverymanId: 1,
+  deliverymanName: "Ana Souza",
   km: nextChangeKm - 1000,
   nextChangeKm,
   changeDate: new Date(),
@@ -59,5 +63,16 @@ describe("Fleet", () => {
       "ABC1D23 · Honda CG 160",
     );
     expect(vehicleLabel({ plate: "ABC1D23", brand: null, model: "" })).toBe("ABC1D23");
+  });
+
+  it("valida veículo e intervalo de troca como o backend", () => {
+    expect(validateVehicle({ plate: "abc-1d23", model: "CG 160" })).toEqual({});
+    expect(validateVehicle({ plate: "AB1", model: " " })).toEqual({
+      plate: "Informe a placa do veículo.",
+      model: "Informe o modelo.",
+    });
+    expect(validateOilInterval(1000)).toBeNull();
+    expect(validateOilInterval(0)).not.toBeNull();
+    expect(validateOilInterval(10.5)).not.toBeNull();
   });
 });

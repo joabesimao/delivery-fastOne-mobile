@@ -10,6 +10,8 @@ export interface FuelRefill {
   id: number;
   vehicleId: number;
   vehiclePlate: string;
+  deliverymanId: number;
+  deliverymanName: string;
   km: number;
   kmDriven: number | null;
   liters: number;
@@ -22,6 +24,8 @@ export interface OilChange {
   id: number;
   vehicleId: number;
   vehiclePlate: string;
+  deliverymanId: number;
+  deliverymanName: string;
   km: number;
   nextChangeKm: number;
   changeDate: Date;
@@ -43,6 +47,30 @@ export interface NewOilChange {
   km: number;
   changeDate: Date;
 }
+
+export interface VehicleInput {
+  plate: string;
+  model: string;
+  brand: string | null;
+  deliverymanId: number | null;
+}
+
+export interface FleetFilter {
+  vehicleId?: number;
+  deliverymanId?: number;
+}
+
+export const normalizePlate = (plate: string) => plate.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
+export const validateVehicle = (input: { plate: string; model: string }) => {
+  const errors: FieldErrors<"plate" | "model"> = {};
+  if (normalizePlate(input.plate).length < 7) errors.plate = "Informe a placa do veículo.";
+  if (!input.model.trim()) errors.model = "Informe o modelo.";
+  return errors;
+};
+
+export const validateOilInterval = (km: number) =>
+  Number.isInteger(km) && km > 0 ? null : "Informe um intervalo em km maior que zero.";
 
 export const vehicleLabel = (vehicle: Pick<Vehicle, "plate" | "model" | "brand">) =>
   [vehicle.plate, [vehicle.brand, vehicle.model].filter(Boolean).join(" ")]

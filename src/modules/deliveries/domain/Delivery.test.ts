@@ -1,6 +1,10 @@
 import {
+  activeFilterCount,
   canTransition,
   countByStatus,
+  filterOptions,
+  matchesFilters,
+  NO_FILTERS,
   matchesSearch,
   nextStatus,
   sortForWork,
@@ -68,5 +72,37 @@ describe("Delivery", () => {
         makeDelivery({ status: "finished" }),
       ]),
     ).toEqual({ actived: 2, delivered: 0, finished: 1 });
+  });
+
+  it("filtra por entregador, cidade e bairro como a listagem do web", () => {
+    const semEntregador = makeDelivery({ id: 2, deliveryman: null });
+    const outraCidade = makeDelivery({
+      id: 3,
+      address: { ...makeDelivery().address, city: "Goiânia", neighborhood: "Setor Bueno" },
+    });
+    const all = [makeDelivery(), semEntregador, outraCidade];
+
+    expect(all.filter((d) => matchesFilters(d, NO_FILTERS))).toHaveLength(3);
+    expect(all.filter((d) => matchesFilters(d, { ...NO_FILTERS, deliverymanId: 0 }))).toEqual([
+      semEntregador,
+    ]);
+    expect(
+      all.filter((d) => matchesFilters(d, { ...NO_FILTERS, city: "Goiânia" })).map((d) => d.id),
+    ).toEqual([3]);
+    expect(activeFilterCount({ deliverymanId: 7, city: "Brasília", neighborhood: null })).toBe(2);
+  });
+
+  it("monta as opções de filtro a partir das entregas, com bairros da cidade escolhida", () => {
+    const all = [
+      makeDelivery(),
+      makeDelivery({
+        id: 2,
+        address: { ...makeDelivery().address, city: "Goiânia", neighborhood: "Setor Bueno" },
+      }),
+    ];
+    const options = filterOptions(all, "Goiânia");
+    expect(options.cities).toEqual(["Brasília", "Goiânia"]);
+    expect(options.neighborhoods).toEqual(["Setor Bueno"]);
+    expect(options.deliverymen).toEqual([{ id: 7, name: "Carlos Lima" }]);
   });
 });

@@ -21,7 +21,12 @@ const resolveEnv = () => {
   const apiUrl =
     process.env.EXPO_PUBLIC_API_URL || devHostApiUrl() || `http://localhost:${API_PORT}/api`;
   const socketUrl = process.env.EXPO_PUBLIC_SOCKET_URL || originOf(apiUrl);
-  return { apiUrl: trimSlash(apiUrl), socketUrl: trimSlash(socketUrl) };
+  // Cabeçalho da folha de entrega (mesmas variáveis VITE_DELIVERY_COMPANY_* do painel web).
+  const company = {
+    name: process.env.EXPO_PUBLIC_DELIVERY_COMPANY_NAME || "FastOne Delivery",
+    document: process.env.EXPO_PUBLIC_DELIVERY_COMPANY_DOCUMENT || "",
+  };
+  return { apiUrl: trimSlash(apiUrl), socketUrl: trimSlash(socketUrl), company };
 };
 
 export const env = resolveEnv();

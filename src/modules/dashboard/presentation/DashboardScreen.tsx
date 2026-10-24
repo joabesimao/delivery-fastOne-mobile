@@ -1,13 +1,19 @@
+import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { firstName } from "@/modules/auth/domain/Session";
+import { wholeDays } from "@/modules/reports/domain/Reports";
+import { usePerformance, useRanking } from "@/modules/reports/presentation/hooks";
+import { ColumnChart } from "@/shared/charts";
+import { ListRow } from "@/shared/layout";
 import { useSession } from "@/modules/auth/presentation/useSession";
 import { StatusBadge } from "@/modules/deliveries/presentation/components";
 import { container } from "@/main/container";
 import { queryKeys } from "@/main/queryKeys";
 import { describeError } from "@/shared/errors";
 import { formatCurrency, formatNumber } from "@/shared/format";
-import { colors, font, radius, spacing } from "@/shared/theme";
+import { font, radius, spacing } from "@/shared/theme";
 import {
   Banner,
+  Button,
   Card,
   ErrorState,
   LoadingState,
@@ -19,7 +25,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { periodRange, revenueTrend, type OverviewPeriod } from "../domain/Overview";
 
 const periodLabels: Record<OverviewPeriod, string> = {
@@ -29,6 +35,8 @@ const periodLabels: Record<OverviewPeriod, string> = {
 };
 
 export function DashboardScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const router = useRouter();
   const { name } = useSession();
   const [period, setPeriod] = useState<OverviewPeriod>("today");
@@ -37,6 +45,12 @@ export function DashboardScreen() {
     queryKey: queryKeys.overview(period),
     queryFn: ({ signal }) => container.overview.load(periodRange(period), signal),
   });
+
+  // O gráfico de desempenho mostra pelo menos 7 dias, como no painel web.
+  const range = periodRange(period === "today" ? "7d" : period);
+  const chartRange = wholeDays(range.start, range.end);
+  const performance = usePerformance(chartRange);
+  const ranking = useRanking(wholeDays(periodRange(period).start, range.end), "all", 1);
 
   if (overview.isPending) return <LoadingState message="Carregando painel..." />;
   if (overview.isError && !overview.data) {
@@ -52,7 +66,11 @@ export function DashboardScreen() {
       refreshControl={
         <RefreshControl
           refreshing={overview.isRefetching}
-          onRefresh={() => void overview.refetch()}
+          onRefresh={() => {
+            void overview.refetch();
+            void performance.refetch();
+            void ranking.refetch();
+          }}
           colors={[colors.primary]}
         />
       }
@@ -98,6 +116,84 @@ export function DashboardScreen() {
         />
       </View>
 
+      <View style={styles.actions}>
+        <Button
+          title="Nova entrega"
+          icon="add-circle-outline"
+          onPress={() => router.push("/new-delivery")}
+          style={styles.flex}
+        />
+        <Button
+          title="Relatórios"
+          variant="secondary"
+          icon="bar-chart-outline"
+          onPress={() => router.push("/reports/overview")}
+          style={styles.flex}
+        />
+      </View>
+
+      {performance.data ? (
+        <>
+          <SectionTitle>Desempenho</SectionTitle>
+          <Card style={styles.chartCard}>
+            <View style={styles.perfStats}>
+              <PerfStat label="Pedidos" value={formatNumber(performance.data.totalOrders)} />
+              <PerfStat
+                label="Tempo médio"
+                value={
+                  performance.data.avgDeliveryMinutes === null
+                    ? "—"
+                    : `${formatNumber(performance.data.avgDeliveryMinutes)} min`
+                }
+              />
+              <PerfStat
+                label="Pico"
+                value={
+                  performance.data.peakDay
+                    ? `${performance.data.peakDay.label} (${performance.data.peakDay.total})`
+                    : "—"
+                }
+              />
+            </View>
+            {performance.data.days.length > 0 ? (
+              <ColumnChart
+                data={performance.data.days.map((d) => ({
+                  label: period === "30d" ? d.date.slice(8, 10) : d.label,
+                  value: d.total,
+                }))}
+                format={(v) => `${v} ${v === 1 ? "pedido" : "pedidos"}`}
+              />
+            ) : (
+              <Text style={styles.muted}>Sem pedidos no período.</Text>
+            )}
+          </Card>
+        </>
+      ) : null}
+
+      {ranking.data && ranking.data.items.length > 0 ? (
+        <>
+          <SectionTitle
+            action={
+              <Button
+                title="Ver ranking"
+                variant="ghost"
+                onPress={() => router.push("/reports/ranking")}
+              />
+            }
+          >
+            Top entregadores
+          </SectionTitle>
+          {ranking.data.items.slice(0, 5).map((item, index) => (
+            <ListRow
+              key={item.deliverymanId}
+              icon={index === 0 ? "trophy-outline" : "person-outline"}
+              title={`${index + 1}º ${item.name}`}
+              subtitle={`${formatNumber(item.total)} ${item.total === 1 ? "entrega" : "entregas"}`}
+            />
+          ))}
+        </>
+      ) : null}
+
       <SectionTitle>Últimas entregas</SectionTitle>
       {latestDeliveries.length === 0 ? (
         <Text style={styles.muted}>Nenhuma entrega no período.</Text>
@@ -131,6 +227,18 @@ export function DashboardScreen() {
   );
 }
 
+function PerfStat({ label, value }: { label: string; value: string }) {
+  const styles = useStyles();
+  return (
+    <View style={styles.flex}>
+      <Text style={styles.kpiLabel}>{label}</Text>
+      <Text style={styles.perfValue} numberOfLines={1} adjustsFontSizeToFit>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
 function Kpi({
   icon,
   label,
@@ -148,6 +256,8 @@ function Kpi({
   wide?: boolean;
   onPress?: () => void;
 }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <Pressable
       disabled={!onPress}
@@ -167,7 +277,7 @@ function Kpi({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
   greeting: { fontSize: font.heading, fontWeight: "800", color: colors.text },
@@ -198,4 +308,8 @@ const styles = StyleSheet.create({
   },
   divider: { borderTopWidth: 1, borderTopColor: colors.border },
   latestTitle: { fontSize: font.body, fontWeight: "600", color: colors.text },
-});
+  actions: { flexDirection: "row", gap: spacing.md },
+  chartCard: { gap: spacing.lg },
+  perfStats: { flexDirection: "row", gap: spacing.md },
+  perfValue: { fontSize: font.title, fontWeight: "800", color: colors.text, marginTop: 2 },
+}));

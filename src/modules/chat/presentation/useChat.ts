@@ -19,6 +19,16 @@ const { realtime } = container;
 
 const TYPING_IDLE_MS = 3_000;
 
+// O socket responde { ok, error } no ack; erro vira exceção com a mensagem do servidor.
+const emitChecked = async (event: string, payload: unknown) => {
+  const ack = sendAckSchema.safeParse(await realtime.emitWithAck(event, payload));
+  if (!ack.success || !ack.data.ok) {
+    throw new Error(
+      ack.success ? (ack.data.error ?? "Falha na operação.") : "Resposta inválida do servidor.",
+    );
+  }
+};
+
 export const useChat = () => {
   const status = useRealtimeStatus();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -77,21 +87,23 @@ export const useChat = () => {
   );
 
   const send = useCallback(
-    async (text: string) => {
+    async (text: string, image?: { base64: string; mimeType: string }) => {
       const normalized = normalizeOutgoing(text);
-      if (!normalized) return;
+      if (!normalized && !image) return;
       stopTyping();
-      const ack = sendAckSchema.safeParse(
-        await realtime.emitWithAck(CHAT_EVENTS.send, { text: normalized }),
-      );
-      if (!ack.success || !ack.data.ok) {
-        throw new Error(
-          ack.success ? (ack.data.error ?? "Falha ao enviar.") : "Resposta inválida do servidor.",
-        );
-      }
+      await emitChecked(CHAT_EVENTS.send, {
+        ...(normalized && { text: normalized }),
+        ...(image && { imageBase64: image.base64, imageMimeType: image.mimeType }),
+      });
     },
     [stopTyping],
   );
+
+  const remove = useCallback(async (messageId: number) => {
+    await emitChecked(CHAT_EVENTS.remove, { messageId });
+    // O servidor também avisa por chat:message-deleted; tirar já evita esperar o evento.
+    setMessages((current) => current.filter((m) => m.id !== messageId));
+  }, []);
 
   return {
     status,
@@ -99,6 +111,7 @@ export const useChat = () => {
     historyLoaded,
     typingNames: Object.values(typing),
     send,
+    remove,
     notifyTyping,
   };
 };

@@ -2,6 +2,7 @@ import { container } from "@/main/container";
 import { queryKeys } from "@/main/queryKeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Delivery, DeliveryStatus } from "../domain/Delivery";
+import type { NewDelivery } from "../domain/DeliveryRepository";
 
 const repository = container.deliveries;
 
@@ -85,3 +86,14 @@ export const useAssignDeliveryman = () =>
     ({ id, deliveryman }) => repository.assignDeliveryman(id, deliveryman.id),
     (delivery, { deliveryman }) => ({ ...delivery, deliveryman }),
   );
+
+export const useCreateDelivery = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (input: NewDelivery) => repository.create(input),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: queryKeys.deliveries });
+      void client.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+};

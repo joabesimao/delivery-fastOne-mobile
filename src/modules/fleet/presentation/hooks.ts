@@ -1,7 +1,13 @@
 import { container } from "@/main/container";
 import { queryKeys } from "@/main/queryKeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { NewFuelRefill, NewOilChange, Vehicle } from "../domain/Fleet";
+import type {
+  FleetFilter,
+  NewFuelRefill,
+  NewOilChange,
+  Vehicle,
+  VehicleInput,
+} from "../domain/Fleet";
 
 const { fleet, vehiclePreference } = container;
 
@@ -43,17 +49,30 @@ export const useSetMyVehicle = () => {
 };
 
 export const useFuelRefills = (vehicleId: number | null) =>
-  useQuery({
-    queryKey: queryKeys.fuelRefills(vehicleId ?? 0),
-    queryFn: ({ signal }) => fleet.listFuelRefills(vehicleId ?? 0, signal),
-    enabled: vehicleId !== null,
-  });
+  useFuelRefillList({ vehicleId: vehicleId ?? 0 }, vehicleId !== null);
 
 export const useOilChanges = (vehicleId: number | null) =>
+  useOilChangeList({ vehicleId: vehicleId ?? 0 }, vehicleId !== null);
+
+// Lista geral (gestor): filtros opcionais por veículo e entregador.
+export const useFuelRefillList = (filter: FleetFilter, enabled = true) =>
   useQuery({
-    queryKey: queryKeys.oilChanges(vehicleId ?? 0),
-    queryFn: ({ signal }) => fleet.listOilChanges(vehicleId ?? 0, signal),
-    enabled: vehicleId !== null,
+    queryKey: queryKeys.fuelRefills(filter),
+    queryFn: ({ signal }) => fleet.listFuelRefills(filter, signal),
+    enabled,
+  });
+
+export const useOilChangeList = (filter: FleetFilter, enabled = true) =>
+  useQuery({
+    queryKey: queryKeys.oilChanges(filter),
+    queryFn: ({ signal }) => fleet.listOilChanges(filter, signal),
+    enabled,
+  });
+
+export const useOilChangeInterval = () =>
+  useQuery({
+    queryKey: queryKeys.oilChangeInterval,
+    queryFn: ({ signal }) => fleet.getOilChangeInterval(signal),
   });
 
 const useFleetMutation = <V>(mutationFn: (variables: V) => Promise<void>) => {
@@ -73,3 +92,28 @@ export const useAddFuelRefill = () =>
 
 export const useAddOilChange = () =>
   useFleetMutation((input: NewOilChange) => fleet.addOilChange(input));
+
+export const useUpdateFuelRefill = () =>
+  useFleetMutation(({ id, input }: { id: number; input: NewFuelRefill }) =>
+    fleet.updateFuelRefill(id, input),
+  );
+
+export const useRemoveFuelRefill = () =>
+  useFleetMutation((id: number) => fleet.removeFuelRefill(id));
+
+export const useUpdateOilChange = () =>
+  useFleetMutation(({ id, input }: { id: number; input: NewOilChange }) =>
+    fleet.updateOilChange(id, input),
+  );
+
+export const useRemoveOilChange = () => useFleetMutation((id: number) => fleet.removeOilChange(id));
+
+export const useSaveVehicle = () =>
+  useFleetMutation(({ id, input }: { id: number | null; input: VehicleInput }) =>
+    id === null ? fleet.addVehicle(input) : fleet.updateVehicle(id, input),
+  );
+
+export const useRemoveVehicle = () => useFleetMutation((id: number) => fleet.removeVehicle(id));
+
+export const useSetOilChangeInterval = () =>
+  useFleetMutation((km: number) => fleet.setOilChangeInterval(km));

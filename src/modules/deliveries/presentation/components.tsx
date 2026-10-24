@@ -1,20 +1,24 @@
+import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { formatCurrency, formatRelative } from "@/shared/format";
-import { colors, font, radius, spacing } from "@/shared/theme";
+import { font, radius, spacing, type ThemeColors } from "@/shared/theme";
 import { Badge } from "@/shared/ui";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { memo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { statusLabels, type Delivery, type DeliveryStatus } from "../domain/Delivery";
 
 // Mesmas cores do painel web.
-export const statusColors: Record<DeliveryStatus, { fg: string; bg: string }> = {
+export const statusColors = (
+  colors: ThemeColors,
+): Record<DeliveryStatus, { fg: string; bg: string }> => ({
   actived: { fg: colors.primary, bg: colors.primarySoft },
   delivered: { fg: colors.warning, bg: colors.warningSoft },
   finished: { fg: colors.success, bg: colors.successSoft },
-};
+});
 
 export function StatusBadge({ status }: { status: DeliveryStatus }) {
-  const palette = statusColors[status];
+  const { colors } = useTheme();
+  const palette = statusColors(colors)[status];
   return <Badge label={statusLabels[status]} color={palette.fg} background={palette.bg} />;
 }
 
@@ -29,6 +33,8 @@ export const DeliveryCard = memo(function DeliveryCard({
   showDeliveryman,
   onPress,
 }: DeliveryCardProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { address } = delivery;
   return (
     <Pressable
@@ -71,7 +77,7 @@ export const DeliveryCard = memo(function DeliveryCard({
   );
 });
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
@@ -95,4 +101,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   meta: { fontSize: font.small, color: colors.textMuted, fontWeight: "500", flexShrink: 1 },
-});
+}));

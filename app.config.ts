@@ -18,7 +18,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   orientation: "portrait",
   icon: "./assets/icon.png",
   scheme: "fastone",
-  userInterfaceStyle: "light",
+  // "automatic" deixa o app seguir o tema do sistema (o usuário pode fixar em Aparência).
+  userInterfaceStyle: "automatic",
   ios: {
     supportsTablet: false,
     bundleIdentifier: identifiers[variant].id,
@@ -37,7 +38,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     favicon: "./assets/favicon.png",
     bundler: "metro",
   },
-  plugins: ["expo-router", "expo-secure-store"],
+  plugins: [
+    "expo-router",
+    "expo-secure-store",
+    [
+      "expo-image-picker",
+      {
+        photosPermission:
+          "O FastOne usa suas fotos para enviar imagens no chat e cadastrar produtos.",
+        cameraPermission: "O FastOne usa a câmera para enviar fotos no chat e cadastrar produtos.",
+        microphonePermission: false,
+      },
+    ],
+  ],
   experiments: {
     typedRoutes: true,
   },

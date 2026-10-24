@@ -1,10 +1,13 @@
+import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { container } from "@/main/container";
 import { useRealtimeStatus } from "@/main/realtimeSession";
-import { colors, font, radius, spacing } from "@/shared/theme";
+import { font, radius, spacing } from "@/shared/theme";
 import { Button, Card, InfoRow } from "@/shared/ui";
 import Constants from "expo-constants";
-import { useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { MenuItem } from "@/shared/layout";
+import { useRouter } from "expo-router";
+import { useState, type ReactNode } from "react";
+import { Alert, ScrollView, Text, View } from "react-native";
 import { roleLabels } from "../domain/Session";
 import { useSession } from "./useSession";
 
@@ -22,7 +25,11 @@ const initials = (name: string) =>
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
 
-export function ProfileScreen() {
+// Perfil do entregador (aba) e cabeçalho do menu "Mais" do gestor, que injeta as seções em `menu`.
+export function ProfileScreen({ menu }: { menu?: ReactNode }) {
+  const styles = useStyles();
+  const router = useRouter();
+  const { colors } = useTheme();
   const { name, role } = useSession();
   const realtimeStatus = useRealtimeStatus();
   const [leaving, setLeaving] = useState(false);
@@ -49,6 +56,15 @@ export function ProfileScreen() {
         <Text style={styles.name}>{name}</Text>
         <Text style={styles.role}>{roleLabels[role]}</Text>
       </View>
+
+      {menu}
+
+      <MenuItem
+        icon="color-palette-outline"
+        label="Aparência"
+        description="Tema claro, escuro ou do sistema"
+        onPress={() => router.push("/settings/appearance")}
+      />
 
       <Card>
         <InfoRow
@@ -77,8 +93,6 @@ export function ProfileScreen() {
         />
       </Card>
 
-      <Text style={styles.note}>Cadastros, relatórios e exportações continuam no painel web.</Text>
-
       <Button
         title="Sair"
         variant="danger"
@@ -90,7 +104,7 @@ export function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   content: { padding: spacing.lg, gap: spacing.lg },
   header: { alignItems: "center", gap: spacing.xs, paddingVertical: spacing.lg },
   avatar: {
@@ -102,11 +116,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: spacing.sm,
   },
-  avatarText: { fontSize: 28, fontWeight: "800", color: colors.white },
+  avatarText: { fontSize: 28, fontWeight: "800", color: colors.onPrimary },
   name: { fontSize: font.heading - 2, fontWeight: "800", color: colors.text, textAlign: "center" },
   role: { fontSize: font.body, color: colors.textMuted },
   statusRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: 2 },
   dot: { width: 8, height: 8, borderRadius: 4 },
   value: { fontSize: font.body, color: colors.text },
-  note: { fontSize: font.small, color: colors.textMuted, textAlign: "center" },
-});
+}));

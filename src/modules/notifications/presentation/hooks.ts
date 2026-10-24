@@ -7,7 +7,7 @@ import {
   useQueryClient,
   type InfiniteData,
 } from "@tanstack/react-query";
-import type { NotificationPage } from "../domain/Notification";
+import type { BroadcastInput, NotificationPage } from "../domain/Notification";
 
 const repository = container.notifications;
 
@@ -52,6 +52,30 @@ export const useMarkNotificationRead = () => {
     onSettled: () => client.invalidateQueries({ queryKey: queryKeys.notifications }),
   });
 };
+
+export const useRemoveNotification = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => repository.remove(id),
+    onMutate: (id) => {
+      client.setQueryData<NotificationPages>(
+        queryKeys.notificationList,
+        (data) =>
+          data && {
+            ...data,
+            pages: data.pages.map((page) => ({
+              ...page,
+              items: page.items.filter((item) => item.id !== id),
+            })),
+          },
+      );
+    },
+    onSettled: () => client.invalidateQueries({ queryKey: queryKeys.notifications }),
+  });
+};
+
+export const useBroadcastNotice = () =>
+  useMutation({ mutationFn: (input: BroadcastInput) => repository.broadcast(input) });
 
 export const useMarkAllNotificationsRead = () => {
   const client = useQueryClient();

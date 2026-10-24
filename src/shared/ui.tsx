@@ -1,9 +1,9 @@
+import { makeStyles, useTheme } from "./ThemeProvider";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ComponentProps, ReactNode, Ref } from "react";
 import {
   ActivityIndicator,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -12,11 +12,12 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from "react-native";
-import { colors, font, radius, spacing } from "./theme";
+import { font, radius, spacing, type ThemeColors } from "./theme";
 
 export type IconName = ComponentProps<typeof Ionicons>["name"];
 
 export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  const styles = useStyles();
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
@@ -32,12 +33,14 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const buttonPalette: Record<ButtonVariant, { bg: string; fg: string; border: string }> = {
-  primary: { bg: colors.primary, fg: colors.white, border: colors.primary },
+const buttonPalette = (
+  colors: ThemeColors,
+): Record<ButtonVariant, { bg: string; fg: string; border: string }> => ({
+  primary: { bg: colors.primary, fg: colors.onPrimary, border: colors.primary },
   secondary: { bg: colors.surface, fg: colors.text, border: colors.border },
-  danger: { bg: colors.dangerSoft, fg: colors.danger, border: "#FECACA" },
+  danger: { bg: colors.dangerSoft, fg: colors.danger, border: colors.dangerBorder },
   ghost: { bg: "transparent", fg: colors.primary, border: "transparent" },
-};
+});
 
 export function Button({
   title,
@@ -48,7 +51,9 @@ export function Button({
   disabled,
   style,
 }: ButtonProps) {
-  const palette = buttonPalette[variant];
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const palette = buttonPalette(colors)[variant];
   const inactive = disabled || loading;
 
   return (
@@ -85,6 +90,8 @@ interface TextFieldProps extends TextInputProps {
 }
 
 export function TextField({ label, error, prefix, style, ref, ...inputProps }: TextFieldProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
@@ -112,6 +119,7 @@ export function Badge({
   color: string;
   background: string;
 }) {
+  const styles = useStyles();
   return (
     <View style={[styles.badge, { backgroundColor: background }]}>
       <Text style={[styles.badgeText, { color }]}>{label}</Text>
@@ -134,6 +142,7 @@ export function Segmented<T extends string>({
   value: T;
   onChange: (value: T) => void;
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.segmented}>
       {options.map((option) => {
@@ -166,6 +175,8 @@ export function InfoRow({
   label: string;
   value: ReactNode;
 }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.infoRow}>
       <Ionicons name={icon} size={18} color={colors.textMuted} style={styles.infoIcon} />
@@ -178,6 +189,7 @@ export function InfoRow({
 }
 
 export function SectionTitle({ children, action }: { children: string; action?: ReactNode }) {
+  const styles = useStyles();
   return (
     <View style={styles.sectionTitle}>
       <Text style={styles.sectionTitleText}>{children}</Text>
@@ -187,6 +199,8 @@ export function SectionTitle({ children, action }: { children: string; action?: 
 }
 
 export function LoadingState({ message = "Carregando..." }: { message?: string }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.centered}>
       <ActivityIndicator color={colors.primary} size="large" />
@@ -204,6 +218,8 @@ export function EmptyState({
   title: string;
   description?: string;
 }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.centered}>
       <Ionicons name={icon} size={44} color={colors.textSubtle} />
@@ -214,6 +230,8 @@ export function EmptyState({
 }
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.centered}>
       <Ionicons name="cloud-offline-outline" size={44} color={colors.danger} />
@@ -227,6 +245,8 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
 }
 
 export function Banner({ tone, message }: { tone: "error" | "success" | "info"; message: string }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const palette = {
     error: { bg: colors.dangerSoft, fg: colors.danger, icon: "alert-circle" as const },
     success: { bg: colors.successSoft, fg: colors.success, icon: "checkmark-circle" as const },
@@ -241,7 +261,7 @@ export function Banner({ tone, message }: { tone: "error" | "success" | "info"; 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
   card: {
     backgroundColor: colors.surface,
@@ -336,4 +356,4 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   bannerText: { flex: 1, fontSize: font.small, fontWeight: "500" },
-});
+}));
