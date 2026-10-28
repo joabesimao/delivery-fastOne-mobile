@@ -100,3 +100,11 @@ O app usa a API como ela está hoje. Enquanto os PRs do backend do plano não sa
 - Branches a partir de `develop`; PR pequeno por etapa; `main` recebe releases.
 - `npm run validate` = typecheck + lint + format + testes (o mesmo que o CI roda).
 - Plano completo: `delivery-fastOne-front/docs-local/mobile-plan-v2.md`.
+
+## Deploy da versão web (Vercel)
+
+O `vercel.json` gera o app web com `expo export -p web` (SPA em `dist/`) e manda toda rota
+para o `index.html`. No projeto do Vercel, defina `EXPO_PUBLIC_API_URL` com a URL da API
+(ex.: `https://fastone-api.vercel.app/api`): as variáveis `EXPO_PUBLIC_*` são embutidas no
+build, então mudar o valor exige um novo deploy. A URL do app web precisa estar em
+`CORS_ORIGINS` na API. Os apps Android/iOS continuam saindo pelo EAS, com a mesma variável.
