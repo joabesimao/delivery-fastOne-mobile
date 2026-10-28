@@ -123,7 +123,7 @@ export function NotificationsScreen() {
           <EmptyState
             icon="notifications-off-outline"
             title="Nenhum aviso"
-            description="Avisos da gestão, do chat e da frota aparecem aqui."
+            description="Avisos da gestão e da frota aparecem aqui."
           />
         }
       />

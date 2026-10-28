@@ -44,9 +44,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       "expo-image-picker",
       {
-        photosPermission:
-          "O FastOne usa suas fotos para enviar imagens no chat e cadastrar produtos.",
-        cameraPermission: "O FastOne usa a câmera para enviar fotos no chat e cadastrar produtos.",
+        photosPermission: "O FastOne usa suas fotos para cadastrar produtos.",
+        cameraPermission: "O FastOne usa a câmera para fotografar produtos.",
         microphonePermission: false,
       },
     ],

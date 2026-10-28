@@ -55,7 +55,7 @@ export const notificationIcons: Record<NotificationType, string> = {
   admin_notice: "megaphone-outline",
 };
 
-export type NotificationRoute = "/chat" | "/fleet" | "/fuel-refills" | "/oil-changes";
+export type NotificationRoute = "/fleet" | "/fuel-refills" | "/oil-changes";
 
 // Os links do backend apontam para rotas do painel web; no app viram a tela equivalente.
 // O entregador vê a frota na aba dele; o gestor vai para a listagem de registros.
@@ -64,7 +64,6 @@ export const appRouteForLink = (
   courier: boolean,
 ): NotificationRoute | null => {
   if (!link) return null;
-  if (link.startsWith("/chat")) return courier ? null : "/chat";
   const oil = /troca-oleo|oil/.test(link);
   const fuel = /abastecimento|fuel/.test(link);
   if (!oil && !fuel && !/frota/.test(link)) return null;

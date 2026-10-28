@@ -48,12 +48,12 @@ src/app/
   login.tsx                      só sem sessão
   index.tsx                      redireciona: entregador → /deliveries, gestor → /dashboard
   (tabs)/                        abas; Tabs.Protected esconde as de outro perfil
-    dashboard chat more          gestor (admin, gerente_estoque, user); "more" = menu lateral do web
+    dashboard more               gestor (admin, gerente_estoque, user); "more" = menu lateral do web
     fleet profile                entregador
     deliveries notifications     todos
   delivery/[id]  fuel-refill  oil-change  settings/appearance      todos
   search  new-delivery  clients/  products/  deliverymen/  vehicles/
-  cities  neighborhoods  fuel-refills  oil-changes  reports/  chat-search   gestor
+  cities  neighborhoods  fuel-refills  oil-changes  reports/                gestor
   users/  broadcast              admin
   settings/fleet                 admin e gerente de estoque
 ```
@@ -76,11 +76,10 @@ não mostrar o que vai dar 403: quem bloqueia é a API.
 | Abastecimento / troca de óleo (listas, edição)         | Mais → Cadastros; entregador na aba Frota      |
 | Usuários (staff)                                       | Mais → Usuários (admin)                        |
 | Configurações visuais / de frota                       | Aparência / Configurações de frota             |
-| Chat (imagem, apagar, busca)                           | aba Chat                                       |
 | Sino de avisos + Enviar aviso                          | aba Avisos (+ botão do admin)                  |
 | Busca global do cabeçalho                              | ícone de busca no Painel e em Entregas         |
 
-Ficaram de fora o modal de perfil (foto, apelido) e a troca de unidade: no web eles
+O chat foi retirado do app. Ficaram de fora também o modal de perfil (foto, apelido) e a troca de unidade: no web eles
 importam hooks que não existem no repositório, e o backend não tem `/me` nem rota de unidade.
 O estoque "Em estoque / Apenas N un" da lista de produtos do web é dado de exemplo e também não veio.
 
@@ -93,7 +92,7 @@ O app usa a API como ela está hoje. Enquanto os PRs do backend do plano não sa
 - **Status:** só avança (`actived → delivered → finished`). O PUT de "finalizar" não é repetido automaticamente, porque o backend responde 409 para `finished → finished`.
 - **Listas vazias respondem 204** (`/client`, `/register`): o repositório trata como lista vazia.
 - **Produtos** são paginados em até 100; o app busca todas as páginas.
-- **Imagens** (chat e produto) vão em base64; o app reduz para 1280 px em JPEG antes de enviar, porque a API recusa acima de 5 MB.
+- **Imagens** de produto vão em base64; o app reduz para 1280 px em JPEG antes de enviar, porque a API recusa acima de 5 MB.
 - **Push e foto de comprovante** dependem dos PRs 5 a 8 do backend e de um _development build_.
 
 ## Fluxo de trabalho

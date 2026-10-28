@@ -7,8 +7,8 @@ describe("Notification", () => {
     expect(appRouteForLink("/listagem-abastecimentos", false)).toBe("/fuel-refills");
   });
 
-  it("chat só para quem tem a aba de chat", () => {
-    expect(appRouteForLink("/chat", false)).toBe("/chat");
+  it("chat não tem tela no app", () => {
+    expect(appRouteForLink("/chat", false)).toBeNull();
     expect(appRouteForLink("/chat", true)).toBeNull();
   });
 

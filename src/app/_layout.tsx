@@ -106,7 +106,6 @@ function RootNavigator() {
         <Stack.Screen name="reports/overview" options={{ title: "Relatórios do painel" }} />
         <Stack.Screen name="reports/deliveries" options={{ title: "Relatórios das entregas" }} />
         <Stack.Screen name="reports/ranking" options={{ title: "Ranking de entregadores" }} />
-        <Stack.Screen name="chat-search" options={{ title: "Buscar no chat" }} />
       </Stack.Protected>
 
       <Stack.Protected guard={signedIn && isAdmin(role)}>
