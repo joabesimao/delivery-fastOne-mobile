@@ -7,7 +7,7 @@ export interface RealtimeAccount {
   unitStoreId: number | null;
 }
 
-// `session:ready` só chega na conexão; guardado aqui para telas que montam depois (ex.: chat).
+// `session:ready` só chega na conexão; guardado aqui para telas que montam depois.
 let account: RealtimeAccount | null = null;
 const listeners = new Set<() => void>();
 

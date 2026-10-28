@@ -13,7 +13,6 @@ import {
 } from "@/modules/fleet/infra/HttpFleetRepository";
 import { HttpNotificationRepository } from "@/modules/notifications/infra/HttpNotificationRepository";
 import { HttpCatalogRepository } from "@/modules/catalog/infra/HttpCatalogRepository";
-import { HttpChatSearch } from "@/modules/chat/infra/HttpChatSearch";
 import { HttpReportsRepository } from "@/modules/reports/infra/HttpReportsRepository";
 import { HttpSearchRepository } from "@/modules/search/infra/HttpSearchRepository";
 import { HttpAccountRepository } from "@/modules/users/infra/HttpAccountRepository";
@@ -68,5 +67,4 @@ export const container = {
   accounts: new HttpAccountRepository(http),
   reports: new HttpReportsRepository(http),
   search: new HttpSearchRepository(http),
-  chatSearch: new HttpChatSearch(http),
 };

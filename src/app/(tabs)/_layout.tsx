@@ -14,7 +14,7 @@ const icon = (name: IconName) => {
   return TabIcon;
 };
 
-// Atalho no cabeçalho (busca global, busca no chat).
+// Atalho no cabeçalho (busca global).
 function HeaderAction({ name, label, href }: { name: IconName; label: string; href: Href }) {
   const router = useRouter();
   const { colors } = useTheme();
@@ -32,9 +32,6 @@ function HeaderAction({ name, label, href }: { name: IconName; label: string; hr
 }
 
 const searchAction = () => <HeaderAction name="search" label="Buscar" href="/search" />;
-const chatSearchAction = () => (
-  <HeaderAction name="search" label="Buscar no chat" href="/chat-search" />
-);
 
 export default function TabsLayout() {
   const { colors } = useTheme();
@@ -73,17 +70,6 @@ export default function TabsLayout() {
 
       <Tabs.Protected guard={courier}>
         <Tabs.Screen name="fleet" options={{ title: "Frota", tabBarIcon: icon("car-outline") }} />
-      </Tabs.Protected>
-
-      <Tabs.Protected guard={!courier}>
-        <Tabs.Screen
-          name="chat"
-          options={{
-            title: "Chat",
-            tabBarIcon: icon("chatbubbles-outline"),
-            headerRight: chatSearchAction,
-          }}
-        />
       </Tabs.Protected>
 
       <Tabs.Screen

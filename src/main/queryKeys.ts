@@ -32,5 +32,4 @@ export const queryKeys = {
   products: ["catalog", "products"] as const,
   accounts: ["accounts"] as const,
   search: (term: string) => ["search", term] as const,
-  chatSearch: (term: string) => ["chat-search", term] as const,
 };
