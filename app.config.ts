@@ -53,7 +53,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   experiments: {
     typedRoutes: true,
   },
+  owner: "joabesimao",
   extra: {
     appVariant: variant,
+    eas: { projectId: "e6d7e454-eafe-4ccf-a516-4400cbe59464" },
   },
 });
