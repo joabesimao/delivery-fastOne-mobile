@@ -3,22 +3,32 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
+    "@react-native-community/datetimepicker": "9.2.1",
     "@react-native-community/netinfo": "12.0.1",
     "@tanstack/react-query": "^5.104.3",
-    "expo": "~58.0.14",
+    "expo": "~58.0.19",
     "expo-constants": "~58.0.12",
-    "expo-linking": "~58.0.13",
-    "expo-router": "~58.0.23",
+    "expo-file-system": "~58.0.11",
+    "expo-font": "~58.0.10",
+    "expo-image-manipulator": "~58.0.15",
+    "expo-image-picker": "~58.0.10",
+    "expo-linking": "~58.0.14",
+    "expo-print": "~58.0.7",
+    "expo-router": "~58.0.26",
     "expo-secure-store": "~58.0.2",
-    "expo-status-bar": "~58.0.3",
+    "expo-sharing": "~58.0.20",
+    "expo-splash-screen": "~58.0.11",
+    "expo-status-bar": "~58.0.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.0",
     "react-native-safe-area-context": "~5.10.1",
     "react-native-screens": "~4.30.0",
+    "react-native-svg": "15.16.0",
     "react-native-web": "^0.21.4",
-    "zod": "^4.6.7",
-    "zustand": "^5.0.15"
+    "socket.io-client": "^4.8.4",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@testing-library/react-native": "^14.1.0",
@@ -28,7 +38,7 @@
     "eslint-config-expo": "^58.0.4",
     "eslint-config-prettier": "^10.1.8",
     "jest": "^30.5.2",
-    "jest-expo": "^58.0.11",
+    "jest-expo": "~58.0.12",
     "prettier": "^3.9.10",
     "typescript": "~6.0.3"
   },
@@ -56,6 +66,12 @@
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",
       "!src/app/**"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    },
+    "setupFiles": [
+      "<rootDir>/jest.setup.ts"
     ]
   }
 }
