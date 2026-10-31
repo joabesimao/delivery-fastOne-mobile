@@ -1,20 +1,26 @@
 import { makeStyles, useTheme } from "./ThemeProvider";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ComponentProps, ReactNode, Ref } from "react";
+import { Text, View, type StyleProp, type TextInputInstance, type ViewStyle } from "react-native";
 import {
   ActivityIndicator,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-  type StyleProp,
-  type TextInputInstance,
-  type TextInputProps,
-  type ViewStyle,
-} from "react-native";
-import { font, radius, spacing, type ThemeColors } from "./theme";
+  Button as PaperButton,
+  HelperText,
+  SegmentedButtons,
+  TextInput as PaperTextInput,
+  type TextInputProps as PaperTextInputProps,
+} from "react-native-paper";
+import { font, radius, spacing } from "./theme";
 
 export type IconName = ComponentProps<typeof Ionicons>["name"];
+
+// Os componentes do Paper usam Material Community Icons; o app usa Ionicons.
+export const paperIcon = (name: IconName) => {
+  const PaperIcon = ({ size, color }: { size: number; color: string }) => (
+    <Ionicons name={name} size={size} color={color} />
+  );
+  return PaperIcon;
+};
 
 export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   const styles = useStyles();
@@ -33,14 +39,13 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const buttonPalette = (
-  colors: ThemeColors,
-): Record<ButtonVariant, { bg: string; fg: string; border: string }> => ({
-  primary: { bg: colors.primary, fg: colors.onPrimary, border: colors.primary },
-  secondary: { bg: colors.surface, fg: colors.text, border: colors.border },
-  danger: { bg: colors.dangerSoft, fg: colors.danger, border: colors.dangerBorder },
-  ghost: { bg: "transparent", fg: colors.primary, border: "transparent" },
-});
+// Só a ação principal da tela é "primary" (preenchido); o resto fica em contorno ou texto.
+const buttonMode = {
+  primary: "contained",
+  secondary: "outlined",
+  danger: "outlined",
+  ghost: "text",
+} as const;
 
 export function Button({
   title,
@@ -53,76 +58,89 @@ export function Button({
 }: ButtonProps) {
   const styles = useStyles();
   const { colors } = useTheme();
-  const palette = buttonPalette(colors)[variant];
-  const inactive = disabled || loading;
-
+  const danger = variant === "danger";
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled: inactive, busy: loading }}
+    <PaperButton
+      mode={buttonMode[variant]}
       onPress={onPress}
-      disabled={inactive}
-      style={({ pressed }) => [
-        styles.button,
-        { backgroundColor: palette.bg, borderColor: palette.border },
-        pressed && styles.pressed,
-        inactive && styles.disabled,
-        style,
-      ]}
+      loading={loading}
+      disabled={disabled || loading}
+      icon={icon && !loading ? paperIcon(icon) : undefined}
+      buttonColor={variant === "primary" ? colors.primaryFill : undefined}
+      textColor={danger ? colors.danger : undefined}
+      style={[danger && styles.dangerButton, style]}
+      contentStyle={styles.buttonContent}
+      labelStyle={styles.buttonLabel}
     >
-      {loading ? (
-        <ActivityIndicator color={palette.fg} />
-      ) : (
-        <>
-          {icon ? <Ionicons name={icon} size={18} color={palette.fg} /> : null}
-          <Text style={[styles.buttonText, { color: palette.fg }]}>{title}</Text>
-        </>
-      )}
-    </Pressable>
+      {title}
+    </PaperButton>
   );
 }
 
-interface TextFieldProps extends TextInputProps {
+// Mesmo recorte que o TextInput do Paper expõe pela ref.
+export type TextFieldHandle = Pick<TextInputInstance, "focus" | "blur" | "clear" | "isFocused">;
+
+interface TextFieldProps extends Omit<
+  PaperTextInputProps,
+  "ref" | "label" | "error" | "mode" | "left" | "right"
+> {
   label: string;
   error?: string;
   prefix?: string;
-  ref?: Ref<TextInputInstance>;
+  // Ícone com ação no fim do campo (ex.: mostrar senha).
+  action?: { icon: IconName; label: string; onPress: () => void };
+  ref?: Ref<TextFieldHandle>;
 }
 
-export function TextField({ label, error, prefix, style, ref, ...inputProps }: TextFieldProps) {
+export function TextField({
+  label,
+  error,
+  prefix,
+  action,
+  style,
+  ref,
+  ...inputProps
+}: TextFieldProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={[styles.inputBox, error ? styles.inputError : null]}>
-        {prefix ? <Text style={styles.prefix}>{prefix}</Text> : null}
-        <TextInput
-          ref={ref}
-          placeholderTextColor={colors.textSubtle}
-          style={[styles.input, style]}
-          accessibilityLabel={label}
-          {...inputProps}
-        />
-      </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+    <View>
+      <PaperTextInput
+        // O tipo do Paper exige a ref nativa e a dele ao mesmo tempo; a instância é a do Paper.
+        ref={ref as never}
+        mode="outlined"
+        label={label}
+        error={Boolean(error)}
+        left={prefix ? <PaperTextInput.Affix text={prefix} /> : undefined}
+        right={
+          action ? (
+            <PaperTextInput.Icon
+              icon={paperIcon(action.icon)}
+              onPress={action.onPress}
+              accessibilityLabel={action.label}
+            />
+          ) : undefined
+        }
+        outlineStyle={styles.outline}
+        style={[styles.input, style]}
+        accessibilityLabel={label}
+        {...inputProps}
+      />
+      {error ? (
+        <HelperText type="error" padding="none">
+          {error}
+        </HelperText>
+      ) : null}
     </View>
   );
 }
 
-export function Badge({
-  label,
-  color,
-  background,
-}: {
-  label: string;
-  color: string;
-  background: string;
-}) {
+// Status como ponto colorido + texto, sem pílula.
+export function Badge({ label, color }: { label: string; color: string }) {
   const styles = useStyles();
   return (
-    <View style={[styles.badge, { backgroundColor: background }]}>
-      <Text style={[styles.badgeText, { color }]}>{label}</Text>
+    <View style={styles.badge}>
+      <View style={[styles.badgeDot, { backgroundColor: color }]} />
+      <Text style={styles.badgeText}>{label}</Text>
     </View>
   );
 }
@@ -144,46 +162,34 @@ export function Segmented<T extends string>({
 }) {
   const styles = useStyles();
   return (
-    <View style={styles.segmented}>
-      {options.map((option) => {
-        const selected = option.value === value;
-        return (
-          <Pressable
-            key={option.value}
-            accessibilityRole="tab"
-            accessibilityState={{ selected }}
-            onPress={() => onChange(option.value)}
-            style={[styles.segment, selected && styles.segmentSelected]}
-          >
-            <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>
-              {option.label}
-              {option.count !== undefined ? ` (${option.count})` : ""}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
+    <SegmentedButtons
+      value={value}
+      onValueChange={(next) => onChange(next as T)}
+      buttons={options.map((option) => ({
+        value: option.value,
+        label: option.count !== undefined ? `${option.label} ${option.count}` : option.label,
+        accessibilityLabel:
+          option.count !== undefined ? `${option.label}, ${option.count}` : option.label,
+        labelStyle: styles.segmentLabel,
+        style: styles.segment,
+      }))}
+    />
   );
 }
 
-export function InfoRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: IconName;
-  label: string;
-  value: ReactNode;
-}) {
+// Par rótulo/valor numa linha só, para usar dentro de ListGroup (detalhes, perfil).
+export function DetailRow({ label, value }: { label: string; value: ReactNode }) {
   const styles = useStyles();
-  const { colors } = useTheme();
   return (
-    <View style={styles.infoRow}>
-      <Ionicons name={icon} size={18} color={colors.textMuted} style={styles.infoIcon} />
-      <View style={styles.flex}>
-        <Text style={styles.infoLabel}>{label}</Text>
-        {typeof value === "string" ? <Text style={styles.infoValue}>{value}</Text> : value}
-      </View>
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>{label}</Text>
+      {typeof value === "string" || typeof value === "number" ? (
+        <Text style={styles.detailValue} numberOfLines={2}>
+          {value}
+        </Text>
+      ) : (
+        value
+      )}
     </View>
   );
 }
@@ -203,7 +209,7 @@ export function LoadingState({ message = "Carregando..." }: { message?: string }
   const { colors } = useTheme();
   return (
     <View style={styles.centered}>
-      <ActivityIndicator color={colors.primary} size="large" />
+      <ActivityIndicator color={colors.primary} />
       <Text style={styles.stateText}>{message}</Text>
     </View>
   );
@@ -222,7 +228,7 @@ export function EmptyState({
   const { colors } = useTheme();
   return (
     <View style={styles.centered}>
-      <Ionicons name={icon} size={44} color={colors.textSubtle} />
+      <Ionicons name={icon} size={28} color={colors.textSubtle} />
       <Text style={styles.stateTitle}>{title}</Text>
       {description ? <Text style={styles.stateText}>{description}</Text> : null}
     </View>
@@ -234,7 +240,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
   const { colors } = useTheme();
   return (
     <View style={styles.centered}>
-      <Ionicons name="cloud-offline-outline" size={44} color={colors.danger} />
+      <Ionicons name="cloud-offline-outline" size={28} color={colors.danger} />
       <Text style={styles.stateTitle}>Não foi possível carregar</Text>
       <Text style={styles.stateText}>{message}</Text>
       {onRetry ? (
@@ -270,84 +276,51 @@ const useStyles = makeStyles((colors) => ({
     borderColor: colors.border,
     padding: spacing.lg,
   },
-  button: {
-    minHeight: 48,
-    borderRadius: radius.sm,
-    borderWidth: 1,
+  buttonContent: { minHeight: 48 },
+  buttonLabel: { fontSize: font.body, fontWeight: "500" },
+  dangerButton: { borderColor: colors.dangerBorder },
+  outline: { borderRadius: radius.sm },
+  input: { fontSize: font.body, backgroundColor: colors.surface },
+  badge: { flexDirection: "row", alignItems: "center", gap: 6 },
+  badgeDot: { width: 8, height: 8, borderRadius: 4 },
+  badgeText: { fontSize: font.small, fontWeight: "500", color: colors.text },
+  segment: { borderColor: colors.borderStrong },
+  segmentLabel: { fontSize: font.small, fontWeight: "500", fontVariant: ["tabular-nums"] },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.lg,
     paddingHorizontal: spacing.lg,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.sm,
-  },
-  buttonText: { fontSize: font.body, fontWeight: "600" },
-  pressed: { opacity: 0.85 },
-  disabled: { opacity: 0.5 },
-  field: { gap: spacing.xs },
-  label: { fontSize: font.small, fontWeight: "600", color: colors.textMuted },
-  inputBox: {
     minHeight: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
-  inputError: { borderColor: colors.danger },
-  prefix: { fontSize: font.body, color: colors.textMuted, marginRight: spacing.xs },
-  input: { flex: 1, fontSize: font.body, color: colors.text, paddingVertical: spacing.md },
-  errorText: { fontSize: font.caption, color: colors.danger },
-  badge: {
-    alignSelf: "flex-start",
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 3,
+  detailLabel: { fontSize: font.body, color: colors.textMuted },
+  detailValue: {
+    flexShrink: 1,
+    fontSize: font.body,
+    fontWeight: "500",
+    color: colors.text,
+    textAlign: "right",
+    fontVariant: ["tabular-nums"],
   },
-  badgeText: { fontSize: font.caption, fontWeight: "700" },
-  segmented: {
-    flexDirection: "row",
-    backgroundColor: colors.border,
-    borderRadius: radius.sm,
-    padding: 3,
-  },
-  segment: {
-    flex: 1,
-    minHeight: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: radius.sm - 2,
-  },
-  segmentSelected: { backgroundColor: colors.surface },
-  segmentText: { fontSize: font.small, fontWeight: "600", color: colors.textMuted },
-  segmentTextSelected: { color: colors.text },
-  infoRow: { flexDirection: "row", gap: spacing.md, paddingVertical: spacing.sm },
-  infoIcon: { marginTop: 2 },
-  infoLabel: {
-    fontSize: font.caption,
-    fontWeight: "600",
-    color: colors.textSubtle,
-    textTransform: "uppercase",
-  },
-  infoValue: { fontSize: font.body, color: colors.text, marginTop: 2 },
   sectionTitle: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginTop: spacing.lg,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
-  sectionTitleText: { fontSize: font.title, fontWeight: "700", color: colors.text },
+  sectionTitleText: { fontSize: font.body, fontWeight: "600", color: colors.text },
   centered: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     padding: spacing.xxl,
-    gap: spacing.md,
+    gap: spacing.sm,
   },
-  stateTitle: { fontSize: font.title, fontWeight: "700", color: colors.text, textAlign: "center" },
-  stateText: { fontSize: font.body, color: colors.textMuted, textAlign: "center" },
+  stateTitle: { fontSize: font.body, fontWeight: "600", color: colors.text, textAlign: "center" },
+  stateText: { fontSize: font.small, color: colors.textMuted, textAlign: "center" },
   banner: {
     flexDirection: "row",
     alignItems: "center",

@@ -1,10 +1,10 @@
 import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { formatCurrency, formatRelative } from "@/shared/format";
-import { font, radius, spacing, type ThemeColors } from "@/shared/theme";
+import { font, spacing, type ThemeColors } from "@/shared/theme";
 import { Badge } from "@/shared/ui";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { memo } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { TouchableRipple } from "react-native-paper";
 import { statusLabels, type Delivery, type DeliveryStatus } from "../domain/Delivery";
 
 // Mesmas cores do painel web.
@@ -19,7 +19,7 @@ export const statusColors = (
 export function StatusBadge({ status }: { status: DeliveryStatus }) {
   const { colors } = useTheme();
   const palette = statusColors(colors)[status];
-  return <Badge label={statusLabels[status]} color={palette.fg} background={palette.bg} />;
+  return <Badge label={statusLabels[status]} color={palette.fg} />;
 }
 
 interface DeliveryCardProps {
@@ -28,77 +28,64 @@ interface DeliveryCardProps {
   onPress: (id: number) => void;
 }
 
+// Linha da lista de entregas. O status já é o filtro da tela, então não se repete aqui.
 export const DeliveryCard = memo(function DeliveryCard({
   delivery,
   showDeliveryman,
   onPress,
 }: DeliveryCardProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   const { address } = delivery;
+  const deliveryman = delivery.deliveryman?.name ?? "Sem entregador";
   return (
-    <Pressable
+    <TouchableRipple
       accessibilityRole="button"
       accessibilityLabel={`Pedido ${delivery.id}, ${delivery.client.name}, ${statusLabels[delivery.status]}`}
       onPress={() => onPress(delivery.id)}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={styles.row}
     >
-      <View style={styles.header}>
-        <Text style={styles.id}>#{delivery.id}</Text>
-        <StatusBadge status={delivery.status} />
-        <Text style={styles.time}>{formatRelative(delivery.date)}</Text>
-      </View>
-
-      <Text style={styles.client} numberOfLines={1}>
-        {delivery.client.name}
-      </Text>
-
-      <View style={styles.row}>
-        <Ionicons name="location-outline" size={16} color={colors.textMuted} />
-        <Text style={styles.address} numberOfLines={2}>
-          {address.street}, {address.number} · {address.neighborhood}
-        </Text>
-      </View>
-
-      <View style={styles.footer}>
-        <Text style={styles.meta}>
-          {delivery.quantity} un · {formatCurrency(delivery.amount)}
-        </Text>
-        {showDeliveryman ? (
-          <View style={styles.row}>
-            <Ionicons name="person-outline" size={14} color={colors.textMuted} />
-            <Text style={styles.meta} numberOfLines={1}>
-              {delivery.deliveryman?.name ?? "Sem entregador"}
+      <>
+        <View style={styles.main}>
+          <Text style={styles.top}>
+            #{delivery.id} · {formatRelative(delivery.date)}
+          </Text>
+          <Text style={styles.client} numberOfLines={1}>
+            {delivery.client.name}
+          </Text>
+          <Text style={styles.address} numberOfLines={2}>
+            {address.street}, {address.number} · {address.neighborhood}
+          </Text>
+          {showDeliveryman ? (
+            <Text style={styles.top} numberOfLines={1}>
+              {deliveryman}
             </Text>
-          </View>
-        ) : null}
-      </View>
-    </Pressable>
+          ) : null}
+        </View>
+        <View style={styles.side}>
+          <Text style={styles.amount}>{formatCurrency(delivery.amount)}</Text>
+          <Text style={styles.top}>{delivery.quantity} un</Text>
+        </View>
+      </>
+    </TouchableRipple>
   );
 });
 
 const useStyles = makeStyles((colors) => ({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  pressed: { backgroundColor: "#F0F4FF" },
-  header: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  id: { fontSize: font.small, fontWeight: "700", color: colors.textMuted },
-  time: { marginLeft: "auto", fontSize: font.caption, color: colors.textSubtle },
-  client: { fontSize: font.title - 1, fontWeight: "700", color: colors.text },
-  row: { flexDirection: "row", alignItems: "center", gap: spacing.xs, flexShrink: 1 },
-  address: { flex: 1, fontSize: font.small, color: colors.textMuted },
-  footer: {
+  row: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     gap: spacing.md,
-    marginTop: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
-  meta: { fontSize: font.small, color: colors.textMuted, fontWeight: "500", flexShrink: 1 },
+  main: { flex: 1, gap: 2 },
+  top: { fontSize: font.caption, color: colors.textSubtle, fontVariant: ["tabular-nums"] },
+  client: { fontSize: font.body + 1, fontWeight: "600", color: colors.text },
+  address: { fontSize: font.small, color: colors.textMuted, lineHeight: 18 },
+  side: { alignItems: "flex-end", gap: 2 },
+  amount: {
+    fontSize: font.body,
+    fontWeight: "600",
+    color: colors.text,
+    fontVariant: ["tabular-nums"],
+  },
 }));

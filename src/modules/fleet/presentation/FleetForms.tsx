@@ -5,10 +5,10 @@ import { useDeliverymen } from "@/modules/deliveries/presentation/hooks";
 import { describeError } from "@/shared/errors";
 import { formatCurrency, formatNumber, parseDecimal } from "@/shared/format";
 import { DateField, Select } from "@/shared/inputs";
-import { FormScreen } from "@/shared/layout";
+import { FieldRow, FormScreen, ListGroup } from "@/shared/layout";
 import { makeStyles } from "@/shared/ThemeProvider";
 import { font, spacing } from "@/shared/theme";
-import { Banner, Button, Card, LoadingState, TextField } from "@/shared/ui";
+import { Banner, Button, DetailRow, LoadingState, TextField } from "@/shared/ui";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Text } from "react-native";
@@ -229,7 +229,6 @@ function FuelRefillForm({ record }: { record?: FuelRefill }) {
       footer={
         <Button
           title={record ? "Salvar alterações" : "Registrar abastecimento"}
-          icon="checkmark"
           onPress={submit}
           loading={mutation.isPending}
           disabled={Boolean(target.problem) || !online}
@@ -252,30 +251,31 @@ function FuelRefillForm({ record }: { record?: FuelRefill }) {
         placeholder={knownKm > 0 ? `Último registro: ${formatNumber(knownKm)}` : "Ex.: 15230"}
         error={errors.km}
       />
-      <TextField
-        label="Litros"
-        value={liters}
-        onChangeText={setLiters}
-        keyboardType="decimal-pad"
-        placeholder="Ex.: 8,5"
-        error={errors.liters}
-      />
-      <TextField
-        label="Preço por litro"
-        prefix="R$"
-        value={price}
-        onChangeText={setPrice}
-        keyboardType="decimal-pad"
-        placeholder="Ex.: 6,19"
-        error={errors.pricePerLiter}
-      />
+      <FieldRow>
+        <TextField
+          label="Litros"
+          value={liters}
+          onChangeText={setLiters}
+          keyboardType="decimal-pad"
+          placeholder="8,5"
+          error={errors.liters}
+        />
+        <TextField
+          label="Preço/litro"
+          prefix="R$"
+          value={price}
+          onChangeText={setPrice}
+          keyboardType="decimal-pad"
+          placeholder="6,19"
+          error={errors.pricePerLiter}
+          accessibilityLabel="Preço por litro"
+        />
+      </FieldRow>
 
-      <Card style={styles.total}>
-        <Text style={styles.totalLabel}>Total</Text>
-        <Text style={styles.totalValue}>{total === null ? "—" : formatCurrency(total)}</Text>
-      </Card>
-
-      {target.courier && !record ? <Text style={styles.hint}>Data do registro: agora.</Text> : null}
+      <ListGroup>
+        <DetailRow label="Total" value={total === null ? "—" : formatCurrency(total)} />
+        {target.courier && !record ? <DetailRow label="Data" value="Agora" /> : null}
+      </ListGroup>
     </FormScreen>
   );
 }
@@ -344,7 +344,6 @@ function OilChangeForm({ record }: { record?: OilChange }) {
       footer={
         <Button
           title={record ? "Salvar alterações" : "Registrar troca de óleo"}
-          icon="checkmark"
           onPress={submit}
           loading={mutation.isPending}
           disabled={Boolean(target.problem) || !online}
@@ -374,9 +373,6 @@ function OilChangeForm({ record }: { record?: OilChange }) {
 
 const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
-  vehicle: { fontSize: font.title, fontWeight: "700", color: colors.text },
-  total: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  totalLabel: { fontSize: font.body, color: colors.textMuted, fontWeight: "600" },
-  totalValue: { fontSize: font.heading, fontWeight: "800", color: colors.text },
+  vehicle: { fontSize: font.title + 2, fontWeight: "600", color: colors.text },
   hint: { fontSize: font.small, color: colors.textMuted, paddingHorizontal: spacing.xs },
 }));

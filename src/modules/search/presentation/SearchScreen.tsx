@@ -4,7 +4,7 @@ import { StatusBadge } from "@/modules/deliveries/presentation/components";
 import { describeError } from "@/shared/errors";
 import { cpfMask, formatCurrency, phoneDigits, phoneMask } from "@/shared/format";
 import { SearchField } from "@/shared/inputs";
-import { IconButton, ListRow, Screen } from "@/shared/layout";
+import { IconButton, ListGroup, ListRow, Screen } from "@/shared/layout";
 import { EmptyState, ErrorState, LoadingState, SectionTitle } from "@/shared/ui";
 import { useDebounced } from "@/shared/useDebounced";
 import { useQuery } from "@tanstack/react-query";
@@ -52,45 +52,48 @@ export function SearchScreen() {
       ) : data ? (
         <>
           {data.orders.length > 0 ? <SectionTitle>Pedidos</SectionTitle> : null}
-          {data.orders.map((o) => (
-            <ListRow
-              key={`o${o.id}`}
-              icon="cube-outline"
-              title={`#${o.id} · ${o.clientName}`}
-              subtitle={`${formatCurrency(o.amount)}${o.deliverymanName ? ` · ${o.deliverymanName}` : ""}`}
-              right={<StatusBadge status={o.status} />}
-              onPress={() => router.push(`/delivery/${o.id}`)}
-            />
-          ))}
+          <ListGroup>
+            {data.orders.map((o) => (
+              <ListRow
+                key={`o${o.id}`}
+                title={`#${o.id} · ${o.clientName}`}
+                subtitle={`${formatCurrency(o.amount)}${o.deliverymanName ? ` · ${o.deliverymanName}` : ""}`}
+                right={<StatusBadge status={o.status} />}
+                onPress={() => router.push(`/delivery/${o.id}`)}
+              />
+            ))}
+          </ListGroup>
 
           {data.clients.length > 0 ? <SectionTitle>Clientes</SectionTitle> : null}
-          {data.clients.map((c) => (
-            <ListRow
-              key={`c${c.id}`}
-              icon="person-outline"
-              title={c.name}
-              subtitle={`${phoneMask(c.phone)} · CPF ${cpfMask(c.cpf)}`}
-              onPress={() => router.push(`/clients/${c.id}`)}
-            />
-          ))}
+          <ListGroup>
+            {data.clients.map((c) => (
+              <ListRow
+                key={`c${c.id}`}
+                title={c.name}
+                subtitle={`${phoneMask(c.phone)} · CPF ${cpfMask(c.cpf)}`}
+                onPress={() => router.push(`/clients/${c.id}`)}
+              />
+            ))}
+          </ListGroup>
 
           {data.deliverymen.length > 0 ? <SectionTitle>Entregadores</SectionTitle> : null}
-          {data.deliverymen.map((d) => (
-            <ListRow
-              key={`d${d.id}`}
-              icon="bicycle-outline"
-              title={d.name}
-              subtitle={phoneMask(d.phone)}
-              right={
-                <IconButton
-                  icon="call-outline"
-                  label={`Ligar para ${d.name}`}
-                  tone="primary"
-                  onPress={() => void Linking.openURL(`tel:${phoneDigits(d.phone)}`)}
-                />
-              }
-            />
-          ))}
+          <ListGroup>
+            {data.deliverymen.map((d) => (
+              <ListRow
+                key={`d${d.id}`}
+                title={d.name}
+                subtitle={phoneMask(d.phone)}
+                right={
+                  <IconButton
+                    icon="call-outline"
+                    label={`Ligar para ${d.name}`}
+                    tone="primary"
+                    onPress={() => void Linking.openURL(`tel:${phoneDigits(d.phone)}`)}
+                  />
+                }
+              />
+            ))}
+          </ListGroup>
         </>
       ) : null}
     </Screen>

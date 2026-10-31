@@ -110,6 +110,6 @@ const useStyles = makeStyles((colors) => ({
     marginTop: -spacing.md,
   },
   roles: { gap: spacing.sm },
-  label: { fontSize: font.small, fontWeight: "600", color: colors.textMuted },
+  label: { fontSize: font.small, fontWeight: "500", color: colors.textMuted },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
 }));

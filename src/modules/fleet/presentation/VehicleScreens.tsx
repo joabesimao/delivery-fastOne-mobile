@@ -4,7 +4,7 @@ import { useSession } from "@/modules/auth/presentation/useSession";
 import { useDeliverymen } from "@/modules/deliveries/presentation/hooks";
 import { describeError } from "@/shared/errors";
 import { includesText, SearchField, Select } from "@/shared/inputs";
-import { confirm, Fab, FormScreen, IconButton, ListRow, ResourceList } from "@/shared/layout";
+import { confirm, Fab, FormScreen, ListRow, ResourceList } from "@/shared/layout";
 import { Banner, Button, LoadingState, TextField } from "@/shared/ui";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
@@ -58,23 +58,15 @@ export function VehiclesScreen() {
       }
       emptyTitle={search ? "Nenhum veículo encontrado" : "Nenhum veículo cadastrado"}
       errorMessage={describeError}
+      hint={isFleetManager(role) ? "Segure um item para excluir" : null}
       fab={<Fab label="Novo veículo" onPress={() => router.push("/vehicles/new")} />}
       renderItem={({ item }) => (
         <ListRow
-          icon="car-outline"
           title={vehicleLabel(item)}
           subtitle={nameOf(item.deliverymanId) ?? "Sem entregador vinculado"}
+          muted={item.deliverymanId === null}
           onPress={() => router.push(`/vehicles/${item.id}`)}
-          right={
-            isFleetManager(role) ? (
-              <IconButton
-                icon="trash-outline"
-                label={`Excluir ${item.plate}`}
-                tone="danger"
-                onPress={() => void askRemove(item)}
-              />
-            ) : undefined
-          }
+          onLongPress={isFleetManager(role) ? () => void askRemove(item) : undefined}
         />
       )}
     />
@@ -146,7 +138,6 @@ function VehicleForm({
       footer={
         <Button
           title={vehicle ? "Salvar alterações" : "Cadastrar veículo"}
-          icon="checkmark"
           onPress={submit}
           loading={save.isPending}
           disabled={!online}

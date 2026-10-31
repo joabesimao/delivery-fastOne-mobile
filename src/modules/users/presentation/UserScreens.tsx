@@ -3,7 +3,7 @@ import { useRealtimeAccount } from "@/main/realtimeSession";
 import { ACCOUNT_ROLES, roleLabels, type AccountRole } from "@/modules/auth/domain/Session";
 import { describeError } from "@/shared/errors";
 import { Chip, includesText, SearchField, Select, SwitchRow } from "@/shared/inputs";
-import { confirm, Fab, FormScreen, IconButton, ListRow, ResourceList } from "@/shared/layout";
+import { confirm, Fab, FormScreen, ListRow, ResourceList } from "@/shared/layout";
 import { useTheme } from "@/shared/ThemeProvider";
 import { Badge, Banner, Button, LoadingState, TextField } from "@/shared/ui";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -64,6 +64,7 @@ export function UsersScreen() {
       }
       emptyTitle="Nenhum usuário encontrado"
       errorMessage={describeError}
+      hint={"Segure um item para excluir"}
       fab={
         <Fab
           label="Novo usuário"
@@ -73,27 +74,13 @@ export function UsersScreen() {
       }
       renderItem={({ item }) => (
         <ListRow
-          icon="person-circle-outline"
           title={item.id === me?.id ? `${item.name} (você)` : item.name}
           subtitle={item.email}
           meta={roleLabels[item.role]}
           muted={!item.active}
           onPress={() => router.push(`/users/${item.id}`)}
-          right={
-            <>
-              {!item.active ? (
-                <Badge label="Inativo" color={colors.textMuted} background={colors.surfaceMuted} />
-              ) : null}
-              {item.id !== me?.id ? (
-                <IconButton
-                  icon="trash-outline"
-                  label={`Excluir ${item.name}`}
-                  tone="danger"
-                  onPress={() => void askRemove(item)}
-                />
-              ) : null}
-            </>
-          }
+          onLongPress={item.id !== me?.id ? () => void askRemove(item) : undefined}
+          right={!item.active ? <Badge label="Inativo" color={colors.textMuted} /> : undefined}
         />
       )}
     />
@@ -160,7 +147,6 @@ function UserForm({ account, onDone }: { account?: Account; onDone: () => void }
       footer={
         <Button
           title={account ? "Salvar alterações" : "Criar usuário"}
-          icon="checkmark"
           onPress={submit}
           loading={mutation.isPending}
           disabled={!online}

@@ -1,11 +1,12 @@
 import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { describeError } from "@/shared/errors";
 import { formatCurrency, formatDate, formatNumber } from "@/shared/format";
-import { font, radius, spacing, type ThemeColors } from "@/shared/theme";
+import { font, spacing, type ThemeColors } from "@/shared/theme";
+import { ListGroup, ListRow } from "@/shared/layout";
 import {
   Badge,
   Button,
-  Card,
+  DetailRow,
   EmptyState,
   ErrorState,
   LoadingState,
@@ -14,12 +15,12 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import { RefreshControl, ScrollView, Text, View } from "react-native";
+import { TouchableRipple } from "react-native-paper";
 import {
   consumptionKmPerLiter,
   lastKnownKm,
   oilChangeStatus,
-  vehicleLabel,
   type OilChangeStatus,
   type Vehicle,
 } from "../domain/Fleet";
@@ -75,46 +76,37 @@ function VehicleChooser({
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      <Text style={styles.heading}>Qual é o seu veículo?</Text>
-      <Text style={styles.muted}>
-        Usado nos registros de abastecimento e troca de óleo, e para separar as suas entregas.
-      </Text>
-      {vehicles.map((v) => {
-        const selected = v.id === currentId;
-        return (
-          <Pressable
-            key={v.id}
-            accessibilityRole="radio"
-            accessibilityState={{ selected }}
-            onPress={() => setMyVehicle.mutate(v.id, { onSuccess: onDone })}
-            style={({ pressed }) => [
-              styles.option,
-              selected && styles.optionSelected,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Ionicons
-              name="car-outline"
-              size={22}
-              color={selected ? colors.primary : colors.textMuted}
-            />
-            <View style={styles.flex}>
-              <Text style={styles.optionTitle}>{v.plate}</Text>
-              <Text style={styles.muted}>{[v.brand, v.model].filter(Boolean).join(" ")}</Text>
-            </View>
-            {v.deliverymanId === null ? (
-              <Badge
-                label="Sem entregador"
-                color={colors.warning}
-                background={colors.warningSoft}
-              />
-            ) : null}
-            {selected ? (
-              <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
-            ) : null}
-          </Pressable>
-        );
-      })}
+      <View style={styles.intro}>
+        <Text style={styles.heading}>Qual é o seu veículo?</Text>
+        <Text style={styles.muted}>
+          Usado nos registros de abastecimento e troca de óleo, e para separar as suas entregas.
+        </Text>
+      </View>
+      <ListGroup>
+        {vehicles.map((v) => {
+          const selected = v.id === currentId;
+          return (
+            <TouchableRipple
+              key={v.id}
+              accessibilityRole="radio"
+              accessibilityState={{ selected }}
+              onPress={() => setMyVehicle.mutate(v.id, { onSuccess: onDone })}
+              style={styles.option}
+            >
+              <>
+                <View style={styles.flex}>
+                  <Text style={styles.plate}>{v.plate}</Text>
+                  <Text style={styles.muted}>
+                    {[v.brand, v.model].filter(Boolean).join(" ")}
+                    {v.deliverymanId === null ? " · sem entregador vinculado" : ""}
+                  </Text>
+                </View>
+                {selected ? <Ionicons name="checkmark" size={22} color={colors.primary} /> : null}
+              </>
+            </TouchableRipple>
+          );
+        })}
+      </ListGroup>
       {onCancel ? <Button title="Cancelar" variant="ghost" onPress={onCancel} /> : null}
     </ScrollView>
   );
@@ -161,47 +153,39 @@ function VehicleOverview({
         />
       }
     >
-      <Card style={styles.vehicleCard}>
-        <View style={styles.vehicleIcon}>
-          <Ionicons name="car" size={26} color={colors.primary} />
-        </View>
-        <View style={styles.flex}>
-          <Text style={styles.optionTitle}>{vehicle.plate}</Text>
-          <Text style={styles.muted}>
-            {[vehicle.brand, vehicle.model].filter(Boolean).join(" ")}
+      <View style={styles.hero}>
+        <View style={styles.heroTop}>
+          <Text style={styles.heroPlate} accessibilityRole="header">
+            {vehicle.plate}
           </Text>
-          {currentKm > 0 ? <Text style={styles.muted}>{formatNumber(currentKm)} km</Text> : null}
+          <Button title="Trocar" variant="ghost" onPress={onChangeVehicle} />
         </View>
-        <Button title="Trocar" variant="ghost" onPress={onChangeVehicle} />
-      </Card>
+        <Text style={styles.muted}>
+          {[vehicle.brand, vehicle.model].filter(Boolean).join(" ")}
+          {currentKm > 0 ? ` · ${formatNumber(currentKm)} km rodados` : ""}
+        </Text>
+      </View>
 
-      <Card style={styles.oilCard}>
-        <View style={styles.oilHeader}>
-          <Text style={styles.cardTitle}>Troca de óleo</Text>
-          <Badge label={palette.label} color={palette.fg} background={palette.bg} />
-        </View>
-        {oil.kind === "unknown" ? (
-          <Text style={styles.muted}>Nenhuma troca registrada para este veículo.</Text>
-        ) : (
-          <Text style={styles.muted}>
-            Próxima troca aos {formatNumber(oil.nextChangeKm)} km
-            {oil.remainingKm > 0
-              ? ` (faltam ${formatNumber(oil.remainingKm)} km)`
-              : ` (passou ${formatNumber(-oil.remainingKm)} km)`}
-          </Text>
+      <ListGroup>
+        <DetailRow
+          label="Troca de óleo"
+          value={<Badge label={palette.label} color={palette.fg} />}
+        />
+        {oil.kind === "unknown" ? null : (
+          <DetailRow label="Próxima troca" value={`${formatNumber(oil.nextChangeKm)} km`} />
         )}
-      </Card>
+        {oil.kind === "unknown" ? null : (
+          <DetailRow
+            label={oil.remainingKm > 0 ? "Faltam" : "Passou"}
+            value={`${formatNumber(Math.abs(oil.remainingKm))} km`}
+          />
+        )}
+      </ListGroup>
 
       <View style={styles.actions}>
-        <Button
-          title="Abastecimento"
-          icon="speedometer-outline"
-          style={styles.flex}
-          onPress={() => router.push("/fuel-refill")}
-        />
+        <Button title="Abastecer" style={styles.flex} onPress={() => router.push("/fuel-refill")} />
         <Button
           title="Troca de óleo"
-          icon="construct-outline"
           variant="secondary"
           style={styles.flex}
           onPress={() => router.push("/oil-change")}
@@ -216,23 +200,21 @@ function VehicleOverview({
       ) : refills.data.length === 0 ? (
         <Text style={styles.muted}>Nenhum abastecimento registrado.</Text>
       ) : (
-        <Card style={styles.historyCard}>
-          {refills.data.slice(0, HISTORY_LIMIT).map((refill, index) => {
+        <ListGroup>
+          {refills.data.slice(0, HISTORY_LIMIT).map((refill) => {
             const consumption = consumptionKmPerLiter(refill);
             return (
-              <View key={refill.id} style={[styles.historyRow, index > 0 && styles.historyDivider]}>
-                <View style={styles.flex}>
-                  <Text style={styles.historyTitle}>{formatDate(refill.refillDate)}</Text>
-                  <Text style={styles.muted}>
-                    {formatNumber(refill.km)} km · {formatNumber(refill.liters, 2)} L
-                    {consumption ? ` · ${formatNumber(consumption, 1)} km/L` : ""}
-                  </Text>
-                </View>
-                <Text style={styles.historyValue}>{formatCurrency(refill.totalValue)}</Text>
-              </View>
+              <ListRow
+                key={refill.id}
+                title={formatDate(refill.refillDate)}
+                subtitle={`${formatNumber(refill.km)} km · ${formatNumber(refill.liters, 2)} L${
+                  consumption ? ` · ${formatNumber(consumption, 1)} km/L` : ""
+                }`}
+                right={<Text style={styles.amount}>{formatCurrency(refill.totalValue)}</Text>}
+              />
             );
           })}
-        </Card>
+        </ListGroup>
       )}
 
       <SectionTitle>Trocas de óleo</SectionTitle>
@@ -243,21 +225,18 @@ function VehicleOverview({
       ) : oilChanges.data.length === 0 ? (
         <Text style={styles.muted}>Nenhuma troca registrada.</Text>
       ) : (
-        <Card style={styles.historyCard}>
-          {oilChanges.data.slice(0, HISTORY_LIMIT).map((change, index) => (
-            <View key={change.id} style={[styles.historyRow, index > 0 && styles.historyDivider]}>
-              <View style={styles.flex}>
-                <Text style={styles.historyTitle}>{formatDate(change.changeDate)}</Text>
-                <Text style={styles.muted}>
-                  Aos {formatNumber(change.km)} km · próxima aos {formatNumber(change.nextChangeKm)}{" "}
-                  km
-                </Text>
-              </View>
-            </View>
+        <ListGroup>
+          {oilChanges.data.slice(0, HISTORY_LIMIT).map((change) => (
+            <ListRow
+              key={change.id}
+              title={formatDate(change.changeDate)}
+              subtitle={`Aos ${formatNumber(change.km)} km · próxima aos ${formatNumber(
+                change.nextChangeKm,
+              )} km`}
+            />
           ))}
-        </Card>
+        </ListGroup>
       )}
-      <Text style={styles.footnote}>{vehicleLabel(vehicle)}</Text>
     </ScrollView>
   );
 }
@@ -265,48 +244,36 @@ function VehicleOverview({
 const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  heading: { fontSize: font.heading - 2, fontWeight: "800", color: colors.text },
+  intro: { gap: spacing.xs, marginBottom: spacing.sm },
+  heading: { fontSize: font.heading - 2, fontWeight: "600", color: colors.text },
   muted: { fontSize: font.small, color: colors.textMuted },
   option: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.lg,
-  },
-  optionSelected: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
-  pressed: { opacity: 0.85 },
-  optionTitle: { fontSize: font.title, fontWeight: "700", color: colors.text },
-  vehicleCard: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  vehicleIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.md,
-    backgroundColor: colors.primarySoft,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  oilCard: { gap: spacing.sm },
-  oilHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  cardTitle: { fontSize: font.body, fontWeight: "700", color: colors.text },
-  actions: { flexDirection: "row", gap: spacing.sm },
-  historyCard: { paddingVertical: spacing.xs },
-  historyRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    gap: spacing.md,
+    minHeight: 56,
   },
-  historyDivider: { borderTopWidth: 1, borderTopColor: colors.border },
-  historyTitle: { fontSize: font.body, fontWeight: "600", color: colors.text },
-  historyValue: { fontSize: font.body, fontWeight: "700", color: colors.text },
-  footnote: {
-    fontSize: font.caption,
-    color: colors.textSubtle,
-    textAlign: "center",
-    marginTop: spacing.md,
+  plate: {
+    fontSize: font.body,
+    fontWeight: "600",
+    color: colors.text,
+    letterSpacing: 0.5,
+  },
+  hero: { gap: 2, paddingBottom: spacing.xs },
+  heroTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  heroPlate: {
+    fontSize: font.heading + 4,
+    fontWeight: "600",
+    color: colors.text,
+    letterSpacing: 1,
+  },
+  actions: { flexDirection: "row", gap: spacing.sm },
+  amount: {
+    fontSize: font.body,
+    fontWeight: "600",
+    color: colors.text,
+    fontVariant: ["tabular-nums"],
   },
 }));

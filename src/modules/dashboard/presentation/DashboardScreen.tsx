@@ -1,10 +1,8 @@
 import { makeStyles, useTheme } from "@/shared/ThemeProvider";
-import { firstName } from "@/modules/auth/domain/Session";
 import { wholeDays } from "@/modules/reports/domain/Reports";
 import { usePerformance, useRanking } from "@/modules/reports/presentation/hooks";
 import { ColumnChart } from "@/shared/charts";
-import { ListRow } from "@/shared/layout";
-import { useSession } from "@/modules/auth/presentation/useSession";
+import { ListGroup, ListRow } from "@/shared/layout";
 import { StatusBadge } from "@/modules/deliveries/presentation/components";
 import { container } from "@/main/container";
 import { queryKeys } from "@/main/queryKeys";
@@ -19,13 +17,12 @@ import {
   LoadingState,
   SectionTitle,
   Segmented,
-  type IconName,
 } from "@/shared/ui";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import { RefreshControl, ScrollView, Text, View } from "react-native";
+import { TouchableRipple } from "react-native-paper";
 import { periodRange, revenueTrend, type OverviewPeriod } from "../domain/Overview";
 
 const periodLabels: Record<OverviewPeriod, string> = {
@@ -38,7 +35,6 @@ export function DashboardScreen() {
   const styles = useStyles();
   const { colors } = useTheme();
   const router = useRouter();
-  const { name } = useSession();
   const [period, setPeriod] = useState<OverviewPeriod>("today");
 
   const overview = useQuery({
@@ -75,7 +71,6 @@ export function DashboardScreen() {
         />
       }
     >
-      <Text style={styles.greeting}>Olá, {firstName(name)}</Text>
       {overview.isError ? <Banner tone="error" message={describeError(overview.error)} /> : null}
 
       <Segmented
@@ -87,33 +82,35 @@ export function DashboardScreen() {
         }))}
       />
 
-      <View style={styles.grid}>
-        <Kpi
-          icon="cash-outline"
-          label="Receita entregue"
-          value={formatCurrency(metrics.deliveredRevenue)}
-          detail={
-            trend === null
-              ? "sem base de comparação"
-              : `${trend >= 0 ? "▲" : "▼"} ${formatNumber(Math.abs(trend) * 100, 0)}% vs. período anterior`
-          }
-          detailColor={
-            trend === null ? colors.textSubtle : trend >= 0 ? colors.success : colors.danger
-          }
-          wide
-        />
-        <Kpi
-          icon="bicycle-outline"
-          label="Entregas abertas"
-          value={formatNumber(metrics.activeDeliveries)}
-          onPress={() => router.navigate("/deliveries")}
-        />
-        <Kpi icon="people-outline" label="Clientes" value={formatNumber(metrics.clients)} />
-        <Kpi
-          icon="id-card-outline"
-          label="Entregadores"
-          value={formatNumber(metrics.deliverymen)}
-        />
+      <View style={styles.summary}>
+        <View style={styles.revenue}>
+          <Text style={styles.metricLabel}>Receita entregue</Text>
+          <Text style={styles.revenueValue} adjustsFontSizeToFit numberOfLines={1}>
+            {formatCurrency(metrics.deliveredRevenue)}
+          </Text>
+          <Text
+            style={[
+              styles.trend,
+              {
+                color:
+                  trend === null ? colors.textSubtle : trend >= 0 ? colors.success : colors.danger,
+              },
+            ]}
+          >
+            {trend === null
+              ? "Sem período anterior para comparar"
+              : `${trend >= 0 ? "+" : "−"}${formatNumber(Math.abs(trend) * 100, 0)}% em relação ao período anterior`}
+          </Text>
+        </View>
+        <View style={styles.metrics}>
+          <Metric
+            label="Abertas"
+            value={formatNumber(metrics.activeDeliveries)}
+            onPress={() => router.navigate("/deliveries")}
+          />
+          <Metric label="Clientes" value={formatNumber(metrics.clients)} />
+          <Metric label="Entregadores" value={formatNumber(metrics.deliverymen)} />
+        </View>
       </View>
 
       <View style={styles.actions}>
@@ -183,14 +180,15 @@ export function DashboardScreen() {
           >
             Top entregadores
           </SectionTitle>
-          {ranking.data.items.slice(0, 5).map((item, index) => (
-            <ListRow
-              key={item.deliverymanId}
-              icon={index === 0 ? "trophy-outline" : "person-outline"}
-              title={`${index + 1}º ${item.name}`}
-              subtitle={`${formatNumber(item.total)} ${item.total === 1 ? "entrega" : "entregas"}`}
-            />
-          ))}
+          <ListGroup>
+            {ranking.data.items.slice(0, 5).map((item, index) => (
+              <ListRow
+                key={item.deliverymanId}
+                title={`${index + 1}º ${item.name}`}
+                subtitle={`${formatNumber(item.total)} ${item.total === 1 ? "entrega" : "entregas"}`}
+              />
+            ))}
+          </ListGroup>
         </>
       ) : null}
 
@@ -198,30 +196,17 @@ export function DashboardScreen() {
       {latestDeliveries.length === 0 ? (
         <Text style={styles.muted}>Nenhuma entrega no período.</Text>
       ) : (
-        <Card style={styles.latest}>
-          {latestDeliveries.map((delivery, index) => (
-            <Pressable
+        <ListGroup>
+          {latestDeliveries.map((delivery) => (
+            <ListRow
               key={delivery.id}
-              accessibilityRole="button"
+              title={`#${delivery.id} · ${delivery.clientName}`}
+              subtitle={`${delivery.deliverymanName} · ${formatCurrency(delivery.amount)}`}
+              right={<StatusBadge status={delivery.status} />}
               onPress={() => router.push(`/delivery/${delivery.id}`)}
-              style={({ pressed }) => [
-                styles.latestRow,
-                index > 0 && styles.divider,
-                pressed && styles.pressed,
-              ]}
-            >
-              <View style={styles.flex}>
-                <Text style={styles.latestTitle} numberOfLines={1}>
-                  #{delivery.id} · {delivery.clientName}
-                </Text>
-                <Text style={styles.muted} numberOfLines={1}>
-                  {delivery.deliverymanName} · {formatCurrency(delivery.amount)}
-                </Text>
-              </View>
-              <StatusBadge status={delivery.status} />
-            </Pressable>
+            />
           ))}
-        </Card>
+        </ListGroup>
       )}
     </ScrollView>
   );
@@ -231,7 +216,7 @@ function PerfStat({ label, value }: { label: string; value: string }) {
   const styles = useStyles();
   return (
     <View style={styles.flex}>
-      <Text style={styles.kpiLabel}>{label}</Text>
+      <Text style={styles.metricLabel}>{label}</Text>
       <Text style={styles.perfValue} numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </Text>
@@ -239,77 +224,72 @@ function PerfStat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Kpi({
-  icon,
-  label,
-  value,
-  detail,
-  detailColor,
-  wide,
-  onPress,
-}: {
-  icon: IconName;
-  label: string;
-  value: string;
-  detail?: string;
-  detailColor?: string;
-  wide?: boolean;
-  onPress?: () => void;
-}) {
+// Número secundário do resumo; com onPress vira atalho para a tela correspondente.
+function Metric({ label, value, onPress }: { label: string; value: string; onPress?: () => void }) {
   const styles = useStyles();
-  const { colors } = useTheme();
   return (
-    <Pressable
+    <TouchableRipple
       disabled={!onPress}
       accessibilityRole={onPress ? "button" : undefined}
+      accessibilityLabel={`${label}: ${value}`}
       onPress={onPress}
-      style={({ pressed }) => [styles.kpi, wide && styles.kpiWide, pressed && styles.pressed]}
+      style={styles.metric}
     >
-      <View style={styles.kpiHeader}>
-        <Ionicons name={icon} size={18} color={colors.primary} />
-        <Text style={styles.kpiLabel}>{label}</Text>
-      </View>
-      <Text style={styles.kpiValue} adjustsFontSizeToFit numberOfLines={1}>
-        {value}
-      </Text>
-      {detail ? <Text style={[styles.kpiDetail, { color: detailColor }]}>{detail}</Text> : null}
-    </Pressable>
+      <>
+        <Text style={styles.metricLabel}>{label}</Text>
+        <Text style={styles.metricValue} adjustsFontSizeToFit numberOfLines={1}>
+          {value}
+        </Text>
+      </>
+    </TouchableRipple>
   );
 }
 
 const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  greeting: { fontSize: font.heading, fontWeight: "800", color: colors.text },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
-  kpi: {
-    flexGrow: 1,
-    flexBasis: "45%",
+  summary: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.xs,
+    overflow: "hidden",
   },
-  kpiWide: { flexBasis: "100%" },
-  kpiHeader: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
-  kpiLabel: { fontSize: font.small, fontWeight: "600", color: colors.textMuted },
-  kpiValue: { fontSize: font.heading, fontWeight: "800", color: colors.text },
-  kpiDetail: { fontSize: font.caption, fontWeight: "600" },
-  pressed: { opacity: 0.85 },
-  muted: { fontSize: font.small, color: colors.textMuted },
-  latest: { paddingVertical: spacing.xs },
-  latestRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
+  revenue: { padding: spacing.lg, gap: 2 },
+  revenueValue: {
+    fontSize: 30,
+    fontWeight: "600",
+    color: colors.text,
+    fontVariant: ["tabular-nums"],
+    letterSpacing: -0.5,
+  },
+  trend: { fontSize: font.small, fontWeight: "500" },
+  metrics: { flexDirection: "row", borderTopWidth: 1, borderTopColor: colors.border },
+  metric: {
+    flex: 1,
     paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    gap: 2,
+    borderLeftWidth: 1,
+    borderLeftColor: colors.border,
+    marginLeft: -1,
   },
-  divider: { borderTopWidth: 1, borderTopColor: colors.border },
-  latestTitle: { fontSize: font.body, fontWeight: "600", color: colors.text },
+  metricLabel: { fontSize: font.small, color: colors.textMuted },
+  metricValue: {
+    fontSize: font.title + 2,
+    fontWeight: "600",
+    color: colors.text,
+    fontVariant: ["tabular-nums"],
+  },
+  muted: { fontSize: font.small, color: colors.textMuted },
   actions: { flexDirection: "row", gap: spacing.md },
   chartCard: { gap: spacing.lg },
   perfStats: { flexDirection: "row", gap: spacing.md },
-  perfValue: { fontSize: font.title, fontWeight: "800", color: colors.text, marginTop: 2 },
+  perfValue: {
+    fontSize: font.title,
+    fontWeight: "600",
+    color: colors.text,
+    fontVariant: ["tabular-nums"],
+    marginTop: 2,
+  },
 }));

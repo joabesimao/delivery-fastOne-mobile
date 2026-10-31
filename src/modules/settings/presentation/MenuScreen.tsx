@@ -1,7 +1,7 @@
 import { canOperate, isAdmin, isFleetManager } from "@/modules/auth/domain/Session";
 import { ProfileScreen } from "@/modules/auth/presentation/ProfileScreen";
 import { useSession } from "@/modules/auth/presentation/useSession";
-import { MenuItem } from "@/shared/layout";
+import { ListGroup, MenuItem } from "@/shared/layout";
 import { spacing } from "@/shared/theme";
 import { SectionTitle, type IconName } from "@/shared/ui";
 import { useRouter, type Href } from "expo-router";
@@ -108,15 +108,17 @@ export function MenuScreen() {
         return (
           <View key={title} style={{ gap: spacing.sm }}>
             <SectionTitle>{title}</SectionTitle>
-            {visible.map((e) => (
-              <MenuItem
-                key={e.label}
-                icon={e.icon}
-                label={e.label}
-                description={e.description}
-                onPress={() => router.push(e.href)}
-              />
-            ))}
+            <ListGroup>
+              {visible.map((e) => (
+                <MenuItem
+                  key={e.label}
+                  icon={e.icon}
+                  label={e.label}
+                  description={e.description}
+                  onPress={() => router.push(e.href)}
+                />
+              ))}
+            </ListGroup>
           </View>
         );
       })}

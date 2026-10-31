@@ -9,15 +9,16 @@ import {
   parseDecimal,
 } from "@/shared/format";
 import { Chip, includesText, SearchField, SwitchRow } from "@/shared/inputs";
-import { confirm, Fab, FormScreen, IconButton, ResourceList } from "@/shared/layout";
+import { confirm, Fab, FieldRow, FormScreen, IconButton, ResourceList } from "@/shared/layout";
 import { imageUri, pickImage } from "@/shared/pickImage";
 import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { font, radius, spacing } from "@/shared/theme";
-import { Badge, Banner, Button, Card, LoadingState, SectionTitle, TextField } from "@/shared/ui";
+import { Badge, Banner, Button, LoadingState, SectionTitle, TextField } from "@/shared/ui";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Image, ScrollView, Text, View } from "react-native";
+import { TouchableRipple } from "react-native-paper";
 import {
   base64Bytes,
   cleanVariations,
@@ -90,48 +91,38 @@ export function ProductsScreen() {
       }
       emptyTitle={search || category ? "Nenhum produto encontrado" : "Nenhum produto cadastrado"}
       errorMessage={describeError}
+      hint={isAdmin(role) ? "Segure um produto para excluir" : null}
       fab={<Fab label="Novo produto" onPress={() => router.push("/products/new")} />}
       renderItem={({ item }) => (
-        <Pressable
+        <TouchableRipple
           accessibilityRole="button"
           accessibilityLabel={`${item.name}, ${formatCurrency(item.price)}`}
           onPress={() => router.push(`/products/${item.id}`)}
-          style={({ pressed }) => [
-            styles.product,
-            pressed && styles.pressed,
-            !item.active && styles.muted,
-          ]}
+          onLongPress={isAdmin(role) ? () => void askRemove(item) : undefined}
+          style={[styles.product, !item.active && styles.muted]}
         >
-          {item.image ? (
-            <Image source={{ uri: imageUri(item.image) }} style={styles.thumb} />
-          ) : (
-            <View style={[styles.thumb, styles.thumbEmpty]}>
-              <Ionicons name="cube-outline" size={22} color={colors.textSubtle} />
+          <>
+            {item.image ? (
+              <Image source={{ uri: imageUri(item.image) }} style={styles.thumb} />
+            ) : (
+              <View style={[styles.thumb, styles.thumbEmpty]}>
+                <Ionicons name="cube-outline" size={22} color={colors.textSubtle} />
+              </View>
+            )}
+            <View style={styles.flex}>
+              <Text style={styles.name} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text style={styles.meta} numberOfLines={1}>
+                {[item.category, item.subcategory, item.brand].filter(Boolean).join(" · ")}
+              </Text>
+              <View style={styles.priceRow}>
+                <Text style={styles.price}>{formatCurrency(item.price)}</Text>
+                {!item.active ? <Badge label="Inativo" color={colors.textMuted} /> : null}
+              </View>
             </View>
-          )}
-          <View style={styles.flex}>
-            <Text style={styles.name} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <Text style={styles.meta} numberOfLines={1}>
-              {[item.category, item.subcategory, item.brand].filter(Boolean).join(" · ")}
-            </Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>{formatCurrency(item.price)}</Text>
-              {!item.active ? (
-                <Badge label="Inativo" color={colors.textMuted} background={colors.surfaceMuted} />
-              ) : null}
-            </View>
-          </View>
-          {isAdmin(role) ? (
-            <IconButton
-              icon="trash-outline"
-              label={`Excluir ${item.name}`}
-              tone="danger"
-              onPress={() => void askRemove(item)}
-            />
-          ) : null}
-        </Pressable>
+          </>
+        </TouchableRipple>
       )}
     />
   );
@@ -225,7 +216,6 @@ function ProductForm({ product, onDone }: { product?: Product; onDone: () => voi
       footer={
         <Button
           title={product ? "Salvar alterações" : "Cadastrar produto"}
-          icon="checkmark"
           onPress={submit}
           loading={save.isPending}
           disabled={!online}
@@ -245,19 +235,21 @@ function ProductForm({ product, onDone }: { product?: Product; onDone: () => voi
         />
       ) : null}
 
-      <Card style={styles.imageCard}>
+      <View style={styles.imageRow}>
         {image ? (
           <Image source={{ uri: imageUri(image) }} style={styles.preview} resizeMode="cover" />
         ) : (
-          <View style={[styles.preview, styles.thumbEmpty]}>
-            <Ionicons name="image-outline" size={36} color={colors.textSubtle} />
+          <View style={[styles.preview, styles.previewEmpty]}>
+            <Ionicons name="image-outline" size={28} color={colors.textSubtle} />
           </View>
         )}
         <View style={styles.imageActions}>
+          <Text style={styles.imageHint}>
+            {image ? "Foto do produto" : "Sem foto. Aparece na listagem e no catálogo."}
+          </Text>
           <Button
-            title={image ? "Trocar imagem" : "Adicionar imagem"}
+            title={image ? "Trocar foto" : "Adicionar foto"}
             variant="secondary"
-            icon="camera-outline"
             onPress={chooseImage}
           />
           {image ? (
@@ -271,7 +263,7 @@ function ProductForm({ product, onDone }: { product?: Product; onDone: () => voi
             />
           ) : null}
         </View>
-      </Card>
+      </View>
 
       <TextField label="Nome" value={name} onChangeText={setName} error={errors.name} />
       <TextField
@@ -282,17 +274,20 @@ function ProductForm({ product, onDone }: { product?: Product; onDone: () => voi
         keyboardType="number-pad"
         error={errors.price}
       />
-      <TextField
-        label="Categoria"
-        value={category}
-        onChangeText={setCategory}
-        error={errors.category}
-      />
-      <TextField
-        label="Subcategoria (opcional)"
-        value={subcategory}
-        onChangeText={setSubcategory}
-      />
+      <FieldRow>
+        <TextField
+          label="Categoria"
+          value={category}
+          onChangeText={setCategory}
+          error={errors.category}
+        />
+        <TextField
+          label="Subcategoria"
+          value={subcategory}
+          onChangeText={setSubcategory}
+          placeholder="Opcional"
+        />
+      </FieldRow>
       <TextField
         label="Descrição"
         value={description}
@@ -308,20 +303,25 @@ function ProductForm({ product, onDone }: { product?: Product; onDone: () => voi
       />
 
       <SectionTitle>Detalhes</SectionTitle>
-      <TextField label="Marca" value={brand} onChangeText={setBrand} />
-      <TextField label="Modelo" value={model} onChangeText={setModel} />
-      <TextField
-        label="Unidade de medida"
-        value={unit}
-        onChangeText={setUnit}
-        placeholder="Ex.: un, kg, L"
-      />
-      <TextField
-        label="Código de barras"
-        value={barcode}
-        onChangeText={setBarcode}
-        keyboardType="number-pad"
-      />
+      <FieldRow>
+        <TextField label="Marca" value={brand} onChangeText={setBrand} />
+        <TextField label="Modelo" value={model} onChangeText={setModel} />
+      </FieldRow>
+      <FieldRow weights={[1, 2]}>
+        <TextField
+          label="Unidade"
+          value={unit}
+          onChangeText={setUnit}
+          placeholder="un, kg, L"
+          accessibilityLabel="Unidade de medida"
+        />
+        <TextField
+          label="Código de barras"
+          value={barcode}
+          onChangeText={setBarcode}
+          keyboardType="number-pad"
+        />
+      </FieldRow>
       <TextField label="Observações" value={notes} onChangeText={setNotes} multiline />
 
       <SectionTitle
@@ -337,7 +337,7 @@ function ProductForm({ product, onDone }: { product?: Product; onDone: () => voi
         Variações
       </SectionTitle>
       {variations.length === 0 ? (
-        <Text style={styles.meta}>Ex.: Tamanho = Grande, Cor = Azul.</Text>
+        <Text style={styles.meta}>Nenhuma variação. Ex.: Tamanho Grande, Cor Azul.</Text>
       ) : null}
       {variations.map((v, index) => (
         <View key={index} style={styles.variation}>
@@ -374,13 +374,9 @@ const useStyles = makeStyles((colors) => ({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
-  pressed: { opacity: 0.85 },
   muted: { opacity: 0.6 },
   thumb: { width: 56, height: 56, borderRadius: radius.sm },
   thumbEmpty: {
@@ -388,12 +384,26 @@ const useStyles = makeStyles((colors) => ({
     alignItems: "center",
     justifyContent: "center",
   },
-  name: { fontSize: font.body, fontWeight: "700", color: colors.text },
+  name: { fontSize: font.body, fontWeight: "600", color: colors.text },
   meta: { fontSize: font.small, color: colors.textMuted },
   priceRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: 2 },
-  price: { fontSize: font.body, fontWeight: "800", color: colors.primary },
-  imageCard: { alignItems: "center", gap: spacing.md },
-  preview: { width: 160, height: 160, borderRadius: radius.md },
-  imageActions: { flexDirection: "row", gap: spacing.sm },
+  price: {
+    fontSize: font.body,
+    fontWeight: "600",
+    color: colors.text,
+    fontVariant: ["tabular-nums"],
+  },
+  imageRow: { flexDirection: "row", alignItems: "center", gap: spacing.lg },
+  preview: { width: 96, height: 96, borderRadius: radius.md },
+  previewEmpty: {
+    backgroundColor: colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  imageActions: { flex: 1, alignItems: "flex-start", gap: spacing.xs },
+  imageHint: { fontSize: font.small, color: colors.textMuted },
   variation: { flexDirection: "row", alignItems: "flex-end", gap: spacing.sm },
 }));

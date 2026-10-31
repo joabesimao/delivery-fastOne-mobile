@@ -4,7 +4,7 @@ import { BarList, Donut } from "@/shared/charts";
 import { describeError } from "@/shared/errors";
 import { shareCsv, toCsv } from "@/shared/exporters";
 import { formatCurrency, formatDateTime, formatNumber, isoDay } from "@/shared/format";
-import { ListRow, Screen, StatCard, StatGrid } from "@/shared/layout";
+import { ListGroup, ListRow, Screen, StatCard, StatGrid } from "@/shared/layout";
 import { Banner, Button, Card, EmptyState, LoadingState, SectionTitle } from "@/shared/ui";
 import { useMemo, useState } from "react";
 import { Alert } from "react-native";
@@ -69,28 +69,10 @@ export function DeliveriesReportScreen() {
       {deliveries.data ? (
         <>
           <StatGrid>
-            <StatCard
-              icon="cube-outline"
-              label="Total de pedidos"
-              value={formatNumber(report.totalOrders)}
-            />
-            <StatCard
-              icon="checkmark-done-outline"
-              label="Finalizados"
-              value={formatNumber(report.finishedCount)}
-              tone="success"
-            />
-            <StatCard
-              icon="cash-outline"
-              label="Receita total"
-              value={formatCurrency(report.totalRevenue)}
-            />
-            <StatCard
-              icon="pricetag-outline"
-              label="Ticket médio"
-              value={formatCurrency(report.averageTicket)}
-              tone="warning"
-            />
+            <StatCard label="Total de pedidos" value={formatNumber(report.totalOrders)} />
+            <StatCard label="Finalizados" value={formatNumber(report.finishedCount)} />
+            <StatCard label="Receita total" value={formatCurrency(report.totalRevenue)} />
+            <StatCard label="Ticket médio" value={formatCurrency(report.averageTicket)} />
           </StatGrid>
 
           {report.totalOrders === 0 ? (
@@ -114,15 +96,16 @@ export function DeliveriesReportScreen() {
               </Card>
 
               <SectionTitle>Entregadores com mais pedidos</SectionTitle>
-              {report.topDeliverymen.map((d, index) => (
-                <ListRow
-                  key={d.key}
-                  icon="trophy-outline"
-                  title={`${index + 1}º ${d.name}`}
-                  subtitle={`${d.total} pedidos · ${d.finished} finalizados · ${d.open} em aberto`}
-                  meta={`${formatCurrency(d.revenue)} · ${d.completionRate}% concluídos`}
-                />
-              ))}
+              <ListGroup>
+                {report.topDeliverymen.map((d, index) => (
+                  <ListRow
+                    key={d.key}
+                    title={`${index + 1}º ${d.name}`}
+                    subtitle={`${d.total} pedidos · ${d.finished} finalizados · ${d.open} em aberto`}
+                    meta={`${formatCurrency(d.revenue)} · ${d.completionRate}% concluídos`}
+                  />
+                ))}
+              </ListGroup>
 
               <Button
                 title="Exportar CSV"

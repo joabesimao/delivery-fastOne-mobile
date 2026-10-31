@@ -1,16 +1,23 @@
 import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { isAdmin, isCourier } from "@/modules/auth/domain/Session";
 import { useSession } from "@/modules/auth/presentation/useSession";
-import { confirm, Fab } from "@/shared/layout";
-import { Chip } from "@/shared/inputs";
+import { confirm, Fab, GroupedItem, GroupSeparator } from "@/shared/layout";
 import { describeError } from "@/shared/errors";
 import { formatRelative } from "@/shared/format";
-import { font, radius, spacing } from "@/shared/theme";
-import { Button, EmptyState, ErrorState, LoadingState, type IconName } from "@/shared/ui";
+import { font, spacing } from "@/shared/theme";
+import {
+  Button,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  Segmented,
+  type IconName,
+} from "@/shared/ui";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, Text, View } from "react-native";
+import { TouchableRipple } from "react-native-paper";
 import {
   appRouteForLink,
   isUnread,
@@ -36,6 +43,7 @@ export function NotificationsScreen() {
   const remove = useRemoveNotification();
   const { role } = useSession();
   const [onlyUnread, setOnlyUnread] = useState(false);
+  const unreadCount = unread.data ?? 0;
 
   const items = useMemo(() => {
     const all = notifications.data?.pages.flatMap((page) => page.items) ?? [];
@@ -71,10 +79,12 @@ export function NotificationsScreen() {
         data={items}
         keyExtractor={(item) => String(item.id)}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <NotificationRow notification={item} onPress={open} onLongPress={askRemove} />
+        renderItem={({ item, index }) => (
+          <GroupedItem index={index} count={items.length}>
+            <NotificationRow notification={item} onPress={open} onLongPress={askRemove} />
+          </GroupedItem>
         )}
-        ItemSeparatorComponent={Separator}
+        ItemSeparatorComponent={GroupSeparator}
         onEndReachedThreshold={0.4}
         onEndReached={() => {
           if (notifications.hasNextPage && !notifications.isFetchingNextPage) {
@@ -93,24 +103,26 @@ export function NotificationsScreen() {
         }
         ListHeaderComponent={
           <View style={styles.headerBlock}>
-            <View style={styles.filters}>
-              <Chip label="Todos" selected={!onlyUnread} onPress={() => setOnlyUnread(false)} />
-              <Chip label="Não lidos" selected={onlyUnread} onPress={() => setOnlyUnread(true)} />
-            </View>
-            {(unread.data ?? 0) > 0 ? (
+            <Segmented
+              value={onlyUnread ? "unread" : "all"}
+              onChange={(value) => setOnlyUnread(value === "unread")}
+              options={[
+                { value: "all", label: "Todos" },
+                { value: "unread", label: "Não lidos", count: unreadCount || undefined },
+              ]}
+            />
+            {unreadCount > 0 || items.length > 0 ? (
               <View style={styles.header}>
-                <Text style={styles.headerText}>{unread.data} não lido(s)</Text>
-                <Button
-                  title="Marcar todos como lidos"
-                  variant="ghost"
-                  icon="checkmark-done"
-                  loading={markAll.isPending}
-                  onPress={() => markAll.mutate()}
-                />
+                <Text style={styles.hint}>Segure um aviso para excluir</Text>
+                {unreadCount > 0 ? (
+                  <Button
+                    title="Marcar como lidos"
+                    variant="ghost"
+                    loading={markAll.isPending}
+                    onPress={() => markAll.mutate()}
+                  />
+                ) : null}
               </View>
-            ) : null}
-            {items.length > 0 ? (
-              <Text style={styles.hint}>Toque e segure um aviso para excluir.</Text>
             ) : null}
           </View>
         }
@@ -151,79 +163,64 @@ function NotificationRow({
   const { colors } = useTheme();
   const unread = isUnread(notification);
   return (
-    <Pressable
+    <TouchableRipple
       accessibilityRole="button"
       accessibilityLabel={`${unread ? "Não lido. " : ""}${notification.title}`}
       onPress={() => onPress(notification)}
       onLongPress={() => onLongPress(notification)}
-      style={({ pressed }) => [styles.row, unread && styles.rowUnread, pressed && styles.pressed]}
+      style={styles.row}
     >
-      <View style={styles.icon}>
+      <>
+        <View style={styles.marker}>{unread ? <View style={styles.dot} /> : null}</View>
         <Ionicons
           name={notificationIcons[notification.type] as IconName}
           size={20}
-          color={colors.primary}
+          color={unread ? colors.primary : colors.textSubtle}
+          style={styles.icon}
         />
-      </View>
-      <View style={styles.flex}>
-        <View style={styles.titleRow}>
-          <Text style={[styles.title, unread && styles.titleUnread]} numberOfLines={1}>
-            {notification.title}
+        <View style={styles.flex}>
+          <View style={styles.titleRow}>
+            <Text style={[styles.title, unread && styles.titleUnread]} numberOfLines={1}>
+              {notification.title}
+            </Text>
+            <Text style={styles.time}>{formatRelative(notification.createdAt)}</Text>
+          </View>
+          <Text style={styles.body} numberOfLines={3}>
+            {notification.body}
           </Text>
-          <Text style={styles.time}>{formatRelative(notification.createdAt)}</Text>
         </View>
-        <Text style={styles.body} numberOfLines={3}>
-          {notification.body}
-        </Text>
-      </View>
-      {unread ? <View style={styles.dot} /> : null}
-    </Pressable>
+      </>
+    </TouchableRipple>
   );
-}
-
-function Separator() {
-  const styles = useStyles();
-  return <View style={styles.separator} />;
 }
 
 const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
   list: { padding: spacing.lg, paddingBottom: 96, flexGrow: 1 },
-  headerBlock: { gap: spacing.sm, marginBottom: spacing.md },
-  filters: { flexDirection: "row", gap: spacing.sm },
-  hint: { fontSize: font.caption, color: colors.textSubtle },
+  headerBlock: { gap: spacing.xs, marginBottom: spacing.md },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: spacing.sm,
+    minHeight: 40,
   },
-  headerText: { fontSize: font.small, fontWeight: "600", color: colors.textMuted },
+  hint: { fontSize: font.caption, color: colors.textSubtle },
   footer: { marginVertical: spacing.lg },
-  separator: { height: spacing.sm },
   row: {
     flexDirection: "row",
+    alignItems: "flex-start",
     gap: spacing.md,
-    padding: spacing.lg,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingVertical: spacing.md,
+    paddingLeft: spacing.sm,
+    paddingRight: spacing.lg,
   },
-  rowUnread: { borderColor: "#C7D2FE", backgroundColor: "#FAFBFF" },
-  pressed: { opacity: 0.85 },
-  icon: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  // Coluna fina à esquerda: o ponto de não lido não empurra o conteúdo.
+  marker: { width: spacing.md, alignItems: "flex-end", paddingTop: 7 },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary },
+  icon: { marginTop: 1 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  title: { flex: 1, fontSize: font.body, color: colors.text, fontWeight: "500" },
-  titleUnread: { fontWeight: "700" },
+  title: { flex: 1, fontSize: font.body, color: colors.textMuted, fontWeight: "500" },
+  titleUnread: { color: colors.text, fontWeight: "600" },
   time: { fontSize: font.caption, color: colors.textSubtle },
-  body: { fontSize: font.small, color: colors.textMuted, marginTop: 2 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary, marginTop: 6 },
+  body: { fontSize: font.small, color: colors.textMuted, marginTop: 2, lineHeight: 18 },
 }));

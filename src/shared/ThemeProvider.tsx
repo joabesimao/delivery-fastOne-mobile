@@ -8,8 +8,16 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { StyleSheet, useColorScheme } from "react-native";
-import { palettes, type ColorScheme, type ThemeColors } from "./theme";
+import { StyleSheet, useColorScheme, type TextStyle } from "react-native";
+import { PaperProvider } from "react-native-paper";
+import { buildPaperTheme } from "./paperTheme";
+import {
+  familyForWeight,
+  palettes,
+  type ColorScheme,
+  type FontWeight,
+  type ThemeColors,
+} from "./theme";
 
 export type ThemePreference = ColorScheme | "system";
 
@@ -55,7 +63,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     [scheme, preference, setPreference],
   );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  const paperTheme = useMemo(() => buildPaperTheme(scheme, palettes[scheme]), [scheme]);
+
+  return (
+    <ThemeContext.Provider value={value}>
+      <PaperProvider theme={paperTheme}>{children}</PaperProvider>
+    </ThemeContext.Provider>
+  );
 }
 
 export const useTheme = () => useContext(ThemeContext);
@@ -63,9 +77,23 @@ export const useTheme = () => useContext(ThemeContext);
 // Estilos que dependem das cores do tema; recriados só quando o tema muda.
 type Styles = Parameters<typeof StyleSheet.create>[0];
 
+// Estilo de texto (tem fontSize ou fontWeight) recebe a família IBM Plex do peso.
+// O fontWeight sai: no Android ele faz a fonte customizada cair na do sistema.
+const withFontFamily = <S extends Styles>(styles: S): S => {
+  const result: Record<string, unknown> = {};
+  for (const [name, style] of Object.entries(styles)) {
+    const { fontSize, fontWeight, fontFamily, ...rest } = style as TextStyle;
+    result[name] =
+      fontFamily || (fontSize === undefined && fontWeight === undefined)
+        ? style
+        : { ...rest, fontSize, fontFamily: familyForWeight(fontWeight as FontWeight | undefined) };
+  }
+  return result as S;
+};
+
 export const makeStyles =
   <S extends Styles>(factory: (colors: ThemeColors) => S & Styles) =>
   (): Readonly<S> => {
     const { colors } = useTheme();
-    return useMemo(() => StyleSheet.create(factory(colors)), [colors]);
+    return useMemo(() => StyleSheet.create(withFontFamily(factory(colors))), [colors]);
   };

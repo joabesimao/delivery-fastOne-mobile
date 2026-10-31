@@ -1,16 +1,16 @@
 import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { canOperate, isCourier } from "@/modules/auth/domain/Session";
-import { Select } from "@/shared/inputs";
-import { Fab, FormSheet } from "@/shared/layout";
+import { SearchField, Select } from "@/shared/inputs";
+import { Fab, FormSheet, GroupedItem, GroupSeparator } from "@/shared/layout";
 import { useSession } from "@/modules/auth/presentation/useSession";
 import { useMyVehicle } from "@/modules/fleet/presentation/hooks";
 import { describeError } from "@/shared/errors";
-import { font, radius, spacing } from "@/shared/theme";
+import { font, spacing } from "@/shared/theme";
 import { Banner, Button, EmptyState, ErrorState, LoadingState, Segmented } from "@/shared/ui";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { FlatList, Pressable, RefreshControl, Text, TextInput, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, View } from "react-native";
+import { Checkbox } from "react-native-paper";
 import {
   activeFilterCount,
   countByStatus,
@@ -67,10 +67,12 @@ export function DeliveriesScreen() {
   const openDelivery = useCallback((id: number) => router.push(`/delivery/${id}`), [router]);
 
   const renderItem = useCallback(
-    ({ item }: { item: Delivery }) => (
-      <DeliveryCard delivery={item} showDeliveryman={!filterMine} onPress={openDelivery} />
+    ({ item, index }: { item: Delivery; index: number }) => (
+      <GroupedItem index={index} count={visible.length}>
+        <DeliveryCard delivery={item} showDeliveryman={!filterMine} onPress={openDelivery} />
+      </GroupedItem>
     ),
-    [filterMine, openDelivery],
+    [filterMine, openDelivery, visible.length],
   );
 
   if (deliveries.isPending) return <LoadingState message="Carregando entregas..." />;
@@ -85,7 +87,7 @@ export function DeliveriesScreen() {
         keyExtractor={(item) => String(item.id)}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
-        ItemSeparatorComponent={Separator}
+        ItemSeparatorComponent={GroupSeparator}
         keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
@@ -109,41 +111,24 @@ export function DeliveriesScreen() {
               </Pressable>
             ) : null}
 
-            <View style={styles.searchBox}>
-              <Ionicons name="search" size={18} color={colors.textMuted} />
-              <TextInput
-                value={search}
-                onChangeText={setSearch}
-                placeholder="Cliente, endereço, nº do pedido..."
-                placeholderTextColor={colors.textSubtle}
-                style={styles.searchInput}
-                returnKeyType="search"
-                accessibilityLabel="Buscar entrega"
-              />
-              {search ? (
-                <Pressable
-                  onPress={() => setSearch("")}
-                  hitSlop={10}
-                  accessibilityLabel="Limpar busca"
-                >
-                  <Ionicons name="close-circle" size={18} color={colors.textSubtle} />
-                </Pressable>
-              ) : null}
-            </View>
+            <SearchField
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Cliente, endereço, nº do pedido..."
+            />
 
             {!courier ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setFiltersOpen(true)}
-                style={styles.toggle}
-              >
-                <Ionicons name="options-outline" size={20} color={colors.primary} />
-                <Text style={styles.toggleText}>
-                  {filterCount > 0
+              <Button
+                title={
+                  filterCount > 0
                     ? `Filtros (${filterCount})`
-                    : "Filtrar por entregador, cidade ou bairro"}
-                </Text>
-              </Pressable>
+                    : "Filtrar por entregador, cidade ou bairro"
+                }
+                variant="ghost"
+                icon="options-outline"
+                onPress={() => setFiltersOpen(true)}
+                style={styles.filters}
+              />
             ) : null}
 
             <Segmented
@@ -157,19 +142,16 @@ export function DeliveriesScreen() {
             />
 
             {courier && deliverymanId !== null ? (
-              <Pressable
-                accessibilityRole="switch"
-                accessibilityState={{ checked: onlyMine }}
+              <Checkbox.Item
+                label="Mostrar só as minhas entregas"
+                status={onlyMine ? "checked" : "unchecked"}
                 onPress={() => setOnlyMine((v) => !v)}
-                style={styles.toggle}
-              >
-                <Ionicons
-                  name={onlyMine ? "checkbox" : "square-outline"}
-                  size={20}
-                  color={colors.primary}
-                />
-                <Text style={styles.toggleText}>Mostrar só as minhas entregas</Text>
-              </Pressable>
+                color={colors.primary}
+                mode="android"
+                position="leading"
+                style={styles.checkbox}
+                labelStyle={styles.checkboxLabel}
+              />
             ) : null}
           </View>
         }
@@ -236,28 +218,11 @@ export function DeliveriesScreen() {
   );
 }
 
-function Separator() {
-  const styles = useStyles();
-  return <View style={styles.separator} />;
-}
-
-const useStyles = makeStyles((colors) => ({
+const useStyles = makeStyles(() => ({
   flex: { flex: 1 },
   list: { padding: spacing.lg, paddingBottom: 96, flexGrow: 1 },
   header: { gap: spacing.md, marginBottom: spacing.md },
-  separator: { height: spacing.md },
-  searchBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    minHeight: 46,
-  },
-  searchInput: { flex: 1, fontSize: font.body, color: colors.text, paddingVertical: spacing.sm },
-  toggle: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 36 },
-  toggleText: { fontSize: font.small, color: colors.text, fontWeight: "500" },
+  filters: { alignSelf: "flex-start", marginLeft: -spacing.sm },
+  checkbox: { paddingHorizontal: 0, paddingVertical: 0 },
+  checkboxLabel: { fontSize: font.small, fontWeight: "500", textAlign: "left" },
 }));

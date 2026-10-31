@@ -2,7 +2,7 @@ import { isAdmin } from "@/modules/auth/domain/Session";
 import { useSession } from "@/modules/auth/presentation/useSession";
 import { describeError } from "@/shared/errors";
 import { includesText, SearchField, Select } from "@/shared/inputs";
-import { confirm, Fab, FormSheet, IconButton, ListRow, ResourceList } from "@/shared/layout";
+import { confirm, Fab, FormSheet, ListRow, ResourceList } from "@/shared/layout";
 import { Banner, Button, TextField } from "@/shared/ui";
 import { useMemo, useState } from "react";
 import { Alert, View } from "react-native";
@@ -72,22 +72,13 @@ export function CitiesScreen() {
         header={<SearchField value={search} onChangeText={setSearch} placeholder="Buscar cidade" />}
         emptyTitle={search ? "Nenhuma cidade encontrada" : "Nenhuma cidade cadastrada"}
         errorMessage={describeError}
+        hint={isAdmin(role) ? "Segure um item para excluir" : null}
         fab={<Fab label="Nova cidade" onPress={() => open("new")} />}
         renderItem={({ item }) => (
           <ListRow
-            icon="business-outline"
             title={item.name}
             onPress={() => open(item)}
-            right={
-              isAdmin(role) ? (
-                <IconButton
-                  icon="trash-outline"
-                  label={`Excluir ${item.name}`}
-                  tone="danger"
-                  onPress={() => void askRemove(item)}
-                />
-              ) : undefined
-            }
+            onLongPress={isAdmin(role) ? () => void askRemove(item) : undefined}
           />
         )}
       />
@@ -195,23 +186,14 @@ export function NeighborhoodsScreen() {
         }
         emptyTitle={search || cityFilter ? "Nenhum bairro encontrado" : "Nenhum bairro cadastrado"}
         errorMessage={describeError}
+        hint={isAdmin(role) ? "Segure um item para excluir" : null}
         fab={<Fab label="Novo bairro" onPress={() => open("new")} />}
         renderItem={({ item }) => (
           <ListRow
-            icon="map-outline"
             title={item.name}
             subtitle={item.cityName}
             onPress={() => open(item)}
-            right={
-              isAdmin(role) ? (
-                <IconButton
-                  icon="trash-outline"
-                  label={`Excluir ${item.name}`}
-                  tone="danger"
-                  onPress={() => void askRemove(item)}
-                />
-              ) : undefined
-            }
+            onLongPress={isAdmin(role) ? () => void askRemove(item) : undefined}
           />
         )}
       />

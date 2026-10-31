@@ -2,6 +2,13 @@ import { AppProviders } from "@/main/AppProviders";
 import { canOperate, isAdmin, isFleetManager } from "@/modules/auth/domain/Session";
 import { useSessionState } from "@/modules/auth/presentation/useSession";
 import { ThemeProvider, useTheme } from "@/shared/ThemeProvider";
+import { fontFamily } from "@/shared/theme";
+import {
+  IBMPlexSans_400Regular,
+  IBMPlexSans_500Medium,
+  IBMPlexSans_600SemiBold,
+  useFonts,
+} from "@expo-google-fonts/ibm-plex-sans";
 import {
   DarkTheme,
   DefaultTheme,
@@ -13,10 +20,18 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-// Segura o splash até a sessão salva ser lida, para não piscar a tela de login.
+// Segura o splash até a fonte carregar e a sessão salva ser lida, para não piscar a tela de login.
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  // Se a fonte falhar, segue com a do sistema em vez de travar no splash.
+  const [fontsLoaded, fontError] = useFonts({
+    IBMPlexSans_400Regular,
+    IBMPlexSans_500Medium,
+    IBMPlexSans_600SemiBold,
+  });
+  if (!fontsLoaded && !fontError) return null;
+
   return (
     <SafeAreaProvider>
       <ThemeProvider>
@@ -42,7 +57,13 @@ function ThemedNavigation() {
         text: colors.text,
         border: colors.border,
       },
-    };
+      fonts: {
+        regular: { fontFamily: fontFamily.regular, fontWeight: "400" },
+        medium: { fontFamily: fontFamily.medium, fontWeight: "400" },
+        bold: { fontFamily: fontFamily.semibold, fontWeight: "400" },
+        heavy: { fontFamily: fontFamily.semibold, fontWeight: "400" },
+      },
+    } satisfies typeof base;
   }, [scheme, colors]);
 
   return (

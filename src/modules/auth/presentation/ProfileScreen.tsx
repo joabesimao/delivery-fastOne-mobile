@@ -2,9 +2,9 @@ import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { container } from "@/main/container";
 import { useRealtimeStatus } from "@/main/realtimeSession";
 import { font, radius, spacing } from "@/shared/theme";
-import { Button, Card, InfoRow } from "@/shared/ui";
+import { Button, DetailRow, SectionTitle } from "@/shared/ui";
 import Constants from "expo-constants";
-import { MenuItem } from "@/shared/layout";
+import { ListGroup, MenuItem } from "@/shared/layout";
 import { useRouter } from "expo-router";
 import { useState, type ReactNode } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
@@ -53,73 +53,75 @@ export function ProfileScreen({ menu }: { menu?: ReactNode }) {
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{initials(name) || "?"}</Text>
         </View>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.role}>{roleLabels[role]}</Text>
+        <View style={styles.flex}>
+          <Text style={styles.name} numberOfLines={1}>
+            {name}
+          </Text>
+          <Text style={styles.role}>{roleLabels[role]}</Text>
+        </View>
       </View>
 
       {menu}
 
-      <MenuItem
-        icon="color-palette-outline"
-        label="Aparência"
-        description="Tema claro, escuro ou do sistema"
-        onPress={() => router.push("/settings/appearance")}
-      />
+      <View style={styles.section}>
+        <SectionTitle>Preferências</SectionTitle>
+        <ListGroup>
+          <MenuItem
+            icon="color-palette-outline"
+            label="Aparência"
+            description="Tema claro, escuro ou do sistema"
+            onPress={() => router.push("/settings/appearance")}
+          />
+        </ListGroup>
+      </View>
 
-      <Card>
-        <InfoRow
-          icon="pulse-outline"
-          label="Tempo real"
-          value={
-            <View style={styles.statusRow}>
-              <View
-                style={[
-                  styles.dot,
-                  {
-                    backgroundColor:
-                      realtimeStatus === "connected" ? colors.success : colors.warning,
-                  },
-                ]}
-              />
-              <Text style={styles.value}>{realtimeLabels[realtimeStatus]}</Text>
-            </View>
-          }
-        />
-        <InfoRow icon="server-outline" label="Servidor" value={container.env.apiUrl} />
-        <InfoRow
-          icon="information-circle-outline"
-          label="Versão"
-          value={Constants.expoConfig?.version ?? "—"}
-        />
-      </Card>
+      <View style={styles.section}>
+        <SectionTitle>Sobre o app</SectionTitle>
+        <ListGroup>
+          <DetailRow
+            label="Tempo real"
+            value={
+              <View style={styles.statusRow}>
+                <View
+                  style={[
+                    styles.dot,
+                    {
+                      backgroundColor:
+                        realtimeStatus === "connected" ? colors.success : colors.warning,
+                    },
+                  ]}
+                />
+                <Text style={styles.value}>{realtimeLabels[realtimeStatus]}</Text>
+              </View>
+            }
+          />
+          <DetailRow label="Servidor" value={container.env.apiUrl.replace(/^https?:\/\//, "")} />
+          <DetailRow label="Versão" value={Constants.expoConfig?.version ?? "—"} />
+        </ListGroup>
+      </View>
 
-      <Button
-        title="Sair"
-        variant="danger"
-        icon="log-out-outline"
-        onPress={logout}
-        loading={leaving}
-      />
+      <Button title="Sair da conta" variant="danger" onPress={logout} loading={leaving} />
     </ScrollView>
   );
 }
 
 const useStyles = makeStyles((colors) => ({
-  content: { padding: spacing.lg, gap: spacing.lg },
-  header: { alignItems: "center", gap: spacing.xs, paddingVertical: spacing.lg },
+  flex: { flex: 1 },
+  content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
+  section: { gap: spacing.sm },
+  header: { flexDirection: "row", alignItems: "center", gap: spacing.lg },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primary,
+    width: 56,
+    height: 56,
+    borderRadius: radius.md,
+    backgroundColor: colors.primarySoft,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: spacing.sm,
   },
-  avatarText: { fontSize: 28, fontWeight: "800", color: colors.onPrimary },
-  name: { fontSize: font.heading - 2, fontWeight: "800", color: colors.text, textAlign: "center" },
-  role: { fontSize: font.body, color: colors.textMuted },
-  statusRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: 2 },
+  avatarText: { fontSize: font.title + 2, fontWeight: "600", color: colors.onPrimarySoft },
+  name: { fontSize: font.title + 2, fontWeight: "600", color: colors.text },
+  role: { fontSize: font.small, color: colors.textMuted, marginTop: 2 },
+  statusRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  value: { fontSize: font.body, color: colors.text },
+  value: { fontSize: font.body, fontWeight: "500", color: colors.text },
 }));
