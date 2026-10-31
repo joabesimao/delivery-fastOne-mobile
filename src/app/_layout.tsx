@@ -9,6 +9,7 @@ import {
   IBMPlexSans_600SemiBold,
   useFonts,
 } from "@expo-google-fonts/ibm-plex-sans";
+import { IBMPlexMono_400Regular, IBMPlexMono_500Medium } from "@expo-google-fonts/ibm-plex-mono";
 import {
   DarkTheme,
   DefaultTheme,
@@ -29,6 +30,8 @@ export default function RootLayout() {
     IBMPlexSans_400Regular,
     IBMPlexSans_500Medium,
     IBMPlexSans_600SemiBold,
+    IBMPlexMono_400Regular,
+    IBMPlexMono_500Medium,
   });
   if (!fontsLoaded && !fontError) return null;
 
@@ -68,7 +71,8 @@ function ThemedNavigation() {
 
   return (
     <NavigationThemeProvider value={navigationTheme}>
-      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+      {/* O cabeçalho é sempre grafite, então a barra de status é clara nos dois temas. */}
+      <StatusBar style="light" />
       <RootNavigator />
     </NavigationThemeProvider>
   );
@@ -88,9 +92,10 @@ function RootNavigator() {
   return (
     <Stack
       screenOptions={{
-        headerTintColor: colors.primary,
-        headerTitleStyle: { color: colors.text },
-        headerStyle: { backgroundColor: colors.surface },
+        headerTintColor: colors.onChrome,
+        headerTitleStyle: { color: colors.onChrome, fontFamily: fontFamily.semibold },
+        headerStyle: { backgroundColor: colors.chrome },
+        headerShadowVisible: false,
         headerBackButtonDisplayMode: "minimal",
         contentStyle: { backgroundColor: colors.background },
       }}

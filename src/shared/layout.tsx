@@ -16,7 +16,7 @@ import {
 import { Divider, FAB, IconButton as PaperIconButton, TouchableRipple } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { makeStyles, useTheme } from "./ThemeProvider";
-import { font, radius, spacing } from "./theme";
+import { font, fontFamily, radius, spacing } from "./theme";
 import { EmptyState, ErrorState, LoadingState, paperIcon, type IconName } from "./ui";
 
 // Tela de formulário: rolagem que respeita o teclado e rodapé fixo com as ações.
@@ -90,6 +90,8 @@ export function ListRow({
   onPress,
   onLongPress,
   muted,
+  accent,
+  mono,
 }: {
   title: string;
   subtitle?: string | null;
@@ -99,6 +101,10 @@ export function ListRow({
   onPress?: () => void;
   onLongPress?: () => void;
   muted?: boolean;
+  // Cor da barra de status na lateral esquerda (ex.: status da entrega).
+  accent?: string;
+  // Título em Plex Mono: placas, códigos, quilometragem.
+  mono?: boolean;
 }) {
   const styles = useStyles();
   const { colors } = useTheme();
@@ -112,9 +118,10 @@ export function ListRow({
       style={[styles.row, muted && styles.muted]}
     >
       <>
+        {accent ? <View style={[styles.accent, { backgroundColor: accent }]} /> : null}
         {icon ? <Ionicons name={icon} size={20} color={colors.textMuted} /> : null}
         <View style={styles.flex}>
-          <Text style={styles.rowTitle} numberOfLines={1}>
+          <Text style={[styles.rowTitle, mono && styles.rowTitleMono]} numberOfLines={1}>
             {title}
           </Text>
           {subtitle ? (
@@ -420,6 +427,8 @@ const useStyles = makeStyles((colors) => ({
     minHeight: 56,
   },
   muted: { opacity: 0.6 },
+  accent: { position: "absolute", left: 0, top: 0, bottom: 0, width: 3 },
+  rowTitleMono: { fontFamily: fontFamily.monoMedium, fontSize: font.body - 1, letterSpacing: 0.3 },
   rowTitle: { fontSize: font.body, fontWeight: "500", color: colors.text },
   rowSubtitle: { fontSize: font.small, color: colors.textMuted, marginTop: 2 },
   rowMeta: { fontSize: font.caption, color: colors.textSubtle, marginTop: 2 },
@@ -468,12 +477,18 @@ const useStyles = makeStyles((colors) => ({
     borderColor: colors.border,
   },
   statValue: {
-    fontSize: font.title + 2,
-    fontWeight: "600",
+    fontFamily: fontFamily.monoMedium,
+    fontSize: font.title + 1,
     color: colors.text,
-    fontVariant: ["tabular-nums"],
+    marginTop: 2,
   },
-  statLabel: { fontSize: font.small, color: colors.textMuted },
+  statLabel: {
+    fontSize: font.caption - 1,
+    fontWeight: "500",
+    color: colors.textMuted,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
   statHint: { fontSize: font.caption, color: colors.textSubtle },
   statGrid: {
     backgroundColor: colors.surface,
