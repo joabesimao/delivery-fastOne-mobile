@@ -63,6 +63,7 @@ export function VehiclesScreen() {
       renderItem={({ item }) => (
         <ListRow
           title={vehicleLabel(item)}
+          mono
           subtitle={nameOf(item.deliverymanId) ?? "Sem entregador vinculado"}
           muted={item.deliverymanId === null}
           onPress={() => router.push(`/vehicles/${item.id}`)}

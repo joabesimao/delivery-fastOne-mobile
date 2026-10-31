@@ -1,7 +1,7 @@
 import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { describeError } from "@/shared/errors";
 import { formatCurrency, formatDate, formatNumber } from "@/shared/format";
-import { font, spacing, type ThemeColors } from "@/shared/theme";
+import { font, fontFamily, spacing, type ThemeColors } from "@/shared/theme";
 import { ListGroup, ListRow } from "@/shared/layout";
 import {
   Badge,
@@ -256,18 +256,18 @@ const useStyles = makeStyles((colors) => ({
     minHeight: 56,
   },
   plate: {
+    fontFamily: fontFamily.monoMedium,
     fontSize: font.body,
-    fontWeight: "600",
     color: colors.text,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   hero: { gap: 2, paddingBottom: spacing.xs },
   heroTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   heroPlate: {
+    fontFamily: fontFamily.monoMedium,
     fontSize: font.heading + 4,
-    fontWeight: "600",
     color: colors.text,
-    letterSpacing: 1,
+    letterSpacing: 2,
   },
   actions: { flexDirection: "row", gap: spacing.sm },
   amount: {

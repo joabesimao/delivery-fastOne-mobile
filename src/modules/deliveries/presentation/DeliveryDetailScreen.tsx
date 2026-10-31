@@ -4,7 +4,7 @@ import { isCourier } from "@/modules/auth/domain/Session";
 import { useSession } from "@/modules/auth/presentation/useSession";
 import { describeError } from "@/shared/errors";
 import { formatCurrency, formatDateTime, phoneDigits, phoneMask } from "@/shared/format";
-import { font, radius, spacing } from "@/shared/theme";
+import { font, fontFamily, radius, spacing } from "@/shared/theme";
 import { ListGroup, ListRow } from "@/shared/layout";
 import { Banner, Button, DetailRow, ErrorState, LoadingState, SectionTitle } from "@/shared/ui";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -301,7 +301,7 @@ const useStyles = makeStyles((colors) => ({
     justifyContent: "space-between",
     gap: spacing.md,
   },
-  orderId: { fontSize: font.small, color: colors.textMuted, fontVariant: ["tabular-nums"] },
+  orderId: { fontFamily: fontFamily.mono, fontSize: font.small, color: colors.textMuted },
   clientName: {
     fontSize: font.heading,
     fontWeight: "600",

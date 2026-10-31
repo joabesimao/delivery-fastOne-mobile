@@ -4,6 +4,7 @@ import { container } from "@/main/container";
 import { describeError } from "@/shared/errors";
 import { font, spacing } from "@/shared/theme";
 import { Banner, Button, TextField, type TextFieldHandle } from "@/shared/ui";
+import { StatusBar } from "expo-status-bar";
 import { useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,7 +14,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginScreen() {
   const styles = useStyles();
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const { signOutReason } = useSessionState();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,6 +50,8 @@ export function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      {/* Sem cabeçalho grafite aqui: a barra de status segue o tema. */}
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
