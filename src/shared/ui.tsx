@@ -1,16 +1,22 @@
 import { makeStyles, useTheme } from "./ThemeProvider";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ComponentProps, ReactNode, Ref } from "react";
-import { Text, View, type StyleProp, type TextInputInstance, type ViewStyle } from "react-native";
+import {
+  Pressable,
+  Text,
+  View,
+  type StyleProp,
+  type TextInputInstance,
+  type ViewStyle,
+} from "react-native";
 import {
   ActivityIndicator,
   Button as PaperButton,
   HelperText,
-  SegmentedButtons,
   TextInput as PaperTextInput,
   type TextInputProps as PaperTextInputProps,
 } from "react-native-paper";
-import { font, radius, spacing } from "./theme";
+import { font, fontFamily, radius, spacing } from "./theme";
 
 export type IconName = ComponentProps<typeof Ionicons>["name"];
 
@@ -151,6 +157,7 @@ interface SegmentedOption<T extends string> {
   count?: number;
 }
 
+// Abas de texto com sublinhado (não o SegmentedButtons do Material). Contagem em mono.
 export function Segmented<T extends string>({
   options,
   value,
@@ -162,18 +169,33 @@ export function Segmented<T extends string>({
 }) {
   const styles = useStyles();
   return (
-    <SegmentedButtons
-      value={value}
-      onValueChange={(next) => onChange(next as T)}
-      buttons={options.map((option) => ({
-        value: option.value,
-        label: option.count !== undefined ? `${option.label} ${option.count}` : option.label,
-        accessibilityLabel:
-          option.count !== undefined ? `${option.label}, ${option.count}` : option.label,
-        labelStyle: styles.segmentLabel,
-        style: styles.segment,
-      }))}
-    />
+    <View style={styles.segmented} accessibilityRole="tablist">
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            accessibilityRole="tab"
+            accessibilityState={{ selected }}
+            accessibilityLabel={
+              option.count !== undefined ? `${option.label}, ${option.count}` : option.label
+            }
+            onPress={() => onChange(option.value)}
+            hitSlop={{ top: 8, bottom: 8 }}
+            style={[styles.segment, selected && styles.segmentSelected]}
+          >
+            <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
+              {option.label}
+            </Text>
+            {option.count !== undefined ? (
+              <Text style={[styles.segmentCount, selected && styles.segmentCountSelected]}>
+                {option.count}
+              </Text>
+            ) : null}
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -228,7 +250,7 @@ export function EmptyState({
   const { colors } = useTheme();
   return (
     <View style={styles.centered}>
-      <Ionicons name={icon} size={28} color={colors.textSubtle} />
+      <Ionicons name={icon} size={20} color={colors.textSubtle} />
       <Text style={styles.stateTitle}>{title}</Text>
       {description ? <Text style={styles.stateText}>{description}</Text> : null}
     </View>
@@ -240,7 +262,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
   const { colors } = useTheme();
   return (
     <View style={styles.centered}>
-      <Ionicons name="cloud-offline-outline" size={28} color={colors.danger} />
+      <Ionicons name="cloud-offline-outline" size={20} color={colors.danger} />
       <Text style={styles.stateTitle}>Não foi possível carregar</Text>
       <Text style={styles.stateText}>{message}</Text>
       {onRetry ? (
@@ -284,8 +306,30 @@ const useStyles = makeStyles((colors) => ({
   badge: { flexDirection: "row", alignItems: "center", gap: 6 },
   badgeDot: { width: 8, height: 8, borderRadius: 4 },
   badgeText: { fontSize: font.small, fontWeight: "500", color: colors.text },
-  segment: { borderColor: colors.borderStrong },
-  segmentLabel: { fontSize: font.small, fontWeight: "500", fontVariant: ["tabular-nums"] },
+  segmented: {
+    flexDirection: "row",
+    gap: spacing.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  segment: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: spacing.sm + 2,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
+    marginBottom: -1,
+  },
+  segmentSelected: { borderBottomColor: colors.primary },
+  segmentLabel: { fontSize: font.small + 1, fontWeight: "500", color: colors.textMuted },
+  segmentLabelSelected: { fontSize: font.small + 1, fontWeight: "600", color: colors.text },
+  segmentCount: { fontFamily: fontFamily.mono, fontSize: font.caption, color: colors.textSubtle },
+  segmentCountSelected: {
+    fontFamily: fontFamily.mono,
+    fontSize: font.caption,
+    color: colors.primary,
+  },
   detailRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -308,16 +352,23 @@ const useStyles = makeStyles((colors) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: spacing.lg,
-    marginBottom: spacing.xs,
+    minHeight: 32,
+    marginTop: spacing.md,
   },
-  sectionTitleText: { fontSize: font.body, fontWeight: "600", color: colors.text },
+  // Rótulo de seção em caixa alta e espaçado, como em painel de operação.
+  sectionTitleText: {
+    fontSize: font.caption - 1,
+    fontWeight: "600",
+    color: colors.textMuted,
+    letterSpacing: 0.9,
+    textTransform: "uppercase",
+  },
   centered: {
-    flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xxl,
-    gap: spacing.sm,
+    paddingHorizontal: spacing.xxl,
+    paddingTop: 56,
+    paddingBottom: spacing.xxl,
+    gap: spacing.xs,
   },
   stateTitle: { fontSize: font.body, fontWeight: "600", color: colors.text, textAlign: "center" },
   stateText: { fontSize: font.small, color: colors.textMuted, textAlign: "center" },

@@ -3,12 +3,12 @@ import { wholeDays } from "@/modules/reports/domain/Reports";
 import { usePerformance, useRanking } from "@/modules/reports/presentation/hooks";
 import { ColumnChart } from "@/shared/charts";
 import { ListGroup, ListRow } from "@/shared/layout";
-import { StatusBadge } from "@/modules/deliveries/presentation/components";
+import { StatusBadge, statusColors } from "@/modules/deliveries/presentation/components";
 import { container } from "@/main/container";
 import { queryKeys } from "@/main/queryKeys";
 import { describeError } from "@/shared/errors";
 import { formatCurrency, formatNumber } from "@/shared/format";
-import { font, radius, spacing } from "@/shared/theme";
+import { font, fontFamily, radius, spacing } from "@/shared/theme";
 import {
   Banner,
   Button,
@@ -202,6 +202,7 @@ export function DashboardScreen() {
               key={delivery.id}
               title={`#${delivery.id} · ${delivery.clientName}`}
               subtitle={`${delivery.deliverymanName} · ${formatCurrency(delivery.amount)}`}
+              accent={statusColors(colors)[delivery.status].fg}
               right={<StatusBadge status={delivery.status} />}
               onPress={() => router.push(`/delivery/${delivery.id}`)}
             />
@@ -257,11 +258,11 @@ const useStyles = makeStyles((colors) => ({
   },
   revenue: { padding: spacing.lg, gap: 2 },
   revenueValue: {
+    fontFamily: fontFamily.monoMedium,
     fontSize: 30,
-    fontWeight: "600",
     color: colors.text,
-    fontVariant: ["tabular-nums"],
-    letterSpacing: -0.5,
+    letterSpacing: -1,
+    marginVertical: 2,
   },
   trend: { fontSize: font.small, fontWeight: "500" },
   metrics: { flexDirection: "row", borderTopWidth: 1, borderTopColor: colors.border },
@@ -274,22 +275,26 @@ const useStyles = makeStyles((colors) => ({
     borderLeftColor: colors.border,
     marginLeft: -1,
   },
-  metricLabel: { fontSize: font.small, color: colors.textMuted },
+  metricLabel: {
+    fontSize: font.caption - 1,
+    fontWeight: "500",
+    color: colors.textMuted,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
   metricValue: {
+    fontFamily: fontFamily.monoMedium,
     fontSize: font.title + 2,
-    fontWeight: "600",
     color: colors.text,
-    fontVariant: ["tabular-nums"],
   },
   muted: { fontSize: font.small, color: colors.textMuted },
   actions: { flexDirection: "row", gap: spacing.md },
   chartCard: { gap: spacing.lg },
   perfStats: { flexDirection: "row", gap: spacing.md },
   perfValue: {
-    fontSize: font.title,
-    fontWeight: "600",
+    fontFamily: fontFamily.monoMedium,
+    fontSize: font.body + 1,
     color: colors.text,
-    fontVariant: ["tabular-nums"],
-    marginTop: 2,
+    marginTop: 4,
   },
 }));
