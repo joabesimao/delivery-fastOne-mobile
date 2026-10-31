@@ -27,7 +27,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: identifiers[variant].id,
     adaptiveIcon: {
-      backgroundColor: "#E6F4FE",
+      backgroundColor: "#4361EE",
       foregroundImage: "./assets/android-icon-foreground.png",
       backgroundImage: "./assets/android-icon-background.png",
       monochromeImage: "./assets/android-icon-monochrome.png",
@@ -40,6 +40,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     "expo-router",
+    [
+      "expo-splash-screen",
+      {
+        image: "./assets/splash-icon.png",
+        imageWidth: 120,
+        backgroundColor: "#4361EE",
+      },
+    ],
     "expo-secure-store",
     [
       "expo-image-picker",
