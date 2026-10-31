@@ -37,7 +37,6 @@ function FleetSettingsForm({ current }: { current: number | null }) {
       footer={
         <Button
           title="Salvar"
-          icon="checkmark"
           onPress={submit}
           loading={save.isPending}
           disabled={!online}

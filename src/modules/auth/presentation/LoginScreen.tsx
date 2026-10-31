@@ -1,19 +1,11 @@
+import { Logo } from "@/shared/Logo";
 import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { container } from "@/main/container";
 import { describeError } from "@/shared/errors";
-import { font, radius, spacing } from "@/shared/theme";
-import { Banner, Button, TextField } from "@/shared/ui";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { font, spacing } from "@/shared/theme";
+import { Banner, Button, TextField, type TextFieldHandle } from "@/shared/ui";
 import { useRef, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-  type TextInputInstance,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSessionState } from "./useSession";
 
@@ -29,7 +21,7 @@ export function LoginScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
-  const passwordRef = useRef<TextInputInstance>(null);
+  const passwordRef = useRef<TextFieldHandle>(null);
 
   const emailError =
     touched && !EMAIL_PATTERN.test(email.trim()) ? "Informe um e-mail válido." : undefined;
@@ -63,10 +55,12 @@ export function LoginScreen() {
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
-            <View style={styles.logo}>
-              <Ionicons name="bicycle" size={36} color={colors.onPrimary} />
+            <View style={styles.lockup}>
+              <Logo size={44} background={colors.primaryFill} />
+              <Text style={styles.wordmark} accessibilityRole="header">
+                Fast<Text style={styles.wordmarkAccent}>One</Text>
+              </Text>
             </View>
-            <Text style={styles.title}>FastOne</Text>
             <Text style={styles.subtitle}>Entre com a conta usada no painel.</Text>
           </View>
 
@@ -91,35 +85,25 @@ export function LoginScreen() {
               editable={!submitting}
             />
 
-            <View>
-              <TextField
-                ref={passwordRef}
-                label="Senha"
-                value={password}
-                onChangeText={setPassword}
-                error={passwordError}
-                placeholder="Sua senha"
-                secureTextEntry={!showPassword}
-                autoComplete="current-password"
-                textContentType="password"
-                returnKeyType="go"
-                onSubmitEditing={submit}
-                editable={!submitting}
-              />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                onPress={() => setShowPassword((v) => !v)}
-                hitSlop={12}
-                style={styles.eye}
-              >
-                <Ionicons
-                  name={showPassword ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color={colors.textMuted}
-                />
-              </Pressable>
-            </View>
+            <TextField
+              ref={passwordRef}
+              label="Senha"
+              value={password}
+              onChangeText={setPassword}
+              error={passwordError}
+              placeholder="Sua senha"
+              secureTextEntry={!showPassword}
+              autoComplete="current-password"
+              textContentType="password"
+              returnKeyType="go"
+              onSubmitEditing={submit}
+              editable={!submitting}
+              action={{
+                icon: showPassword ? "eye-off-outline" : "eye-outline",
+                label: showPassword ? "Ocultar senha" : "Mostrar senha",
+                onPress: () => setShowPassword((v) => !v),
+              }}
+            />
 
             <Button title="Entrar" onPress={submit} loading={submitting} icon="log-in-outline" />
           </View>
@@ -133,18 +117,10 @@ const useStyles = makeStyles((colors) => ({
   safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   content: { flexGrow: 1, justifyContent: "center", padding: spacing.xl, gap: spacing.xxl },
-  brand: { alignItems: "center", gap: spacing.sm },
-  logo: {
-    width: 72,
-    height: 72,
-    borderRadius: radius.lg,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.sm,
-  },
-  title: { fontSize: 28, fontWeight: "800", color: colors.text },
+  brand: { gap: spacing.sm },
+  lockup: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  wordmark: { fontSize: 32, fontWeight: "600", color: colors.text, letterSpacing: -0.5 },
+  wordmarkAccent: { color: colors.primary },
   subtitle: { fontSize: font.body, color: colors.textMuted },
   form: { gap: spacing.lg },
-  eye: { position: "absolute", right: spacing.md, top: 38 },
 }));

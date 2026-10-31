@@ -5,7 +5,8 @@ import { useSession } from "@/modules/auth/presentation/useSession";
 import { describeError } from "@/shared/errors";
 import { formatCurrency, formatDateTime, phoneDigits, phoneMask } from "@/shared/format";
 import { font, radius, spacing } from "@/shared/theme";
-import { Banner, Button, Card, ErrorState, InfoRow, LoadingState } from "@/shared/ui";
+import { ListGroup, ListRow } from "@/shared/layout";
+import { Banner, Button, DetailRow, ErrorState, LoadingState, SectionTitle } from "@/shared/ui";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -20,6 +21,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { TouchableRipple } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   formatAddress,
@@ -118,9 +120,47 @@ export function DeliveryDetailScreen() {
           />
         }
       >
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>Pedido #{order.id}</Text>
-          <StatusBadge status={order.status} />
+        <View style={styles.hero}>
+          <View style={styles.heroTop}>
+            <Text style={styles.orderId}>
+              Pedido #{order.id} · {formatDateTime(order.date)}
+            </Text>
+            <StatusBadge status={order.status} />
+          </View>
+          <Text style={styles.clientName} accessibilityRole="header">
+            {order.client.name}
+          </Text>
+          <Text style={styles.address}>{formatAddress(order.address)}</Text>
+          {order.address.reference ? (
+            <Text style={styles.reference}>Ref.: {order.address.reference}</Text>
+          ) : null}
+          <View style={styles.heroActions}>
+            <Button
+              title="Mapa"
+              icon="navigate-outline"
+              variant="secondary"
+              style={styles.flex}
+              onPress={() =>
+                openUrl(
+                  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    formatAddress(order.address),
+                  )}`,
+                  "Nenhum app de mapas disponível.",
+                )
+              }
+            />
+            {clientPhone ? (
+              <Button
+                title={phoneMask(clientPhone)}
+                icon="call-outline"
+                variant="secondary"
+                style={styles.flex}
+                onPress={() =>
+                  openUrl(`tel:${clientPhone}`, "O aparelho não conseguiu iniciar a ligação.")
+                }
+              />
+            ) : null}
+          </View>
         </View>
 
         {!online ? (
@@ -139,91 +179,34 @@ export function DeliveryDetailScreen() {
           <Banner tone="success" message="Entrega finalizada." />
         ) : null}
 
-        <Card>
-          <InfoRow icon="person-outline" label="Cliente" value={order.client.name} />
-          {clientPhone ? (
-            <InfoRow
-              icon="call-outline"
-              label="Telefone"
-              value={
-                <Pressable
-                  accessibilityRole="link"
-                  accessibilityLabel={`Ligar para ${order.client.name}`}
-                  onPress={() =>
-                    openUrl(`tel:${clientPhone}`, "O aparelho não conseguiu iniciar a ligação.")
-                  }
-                >
-                  <Text style={styles.link}>{phoneMask(clientPhone)}</Text>
-                </Pressable>
-              }
-            />
-          ) : null}
-        </Card>
-
-        <Card>
-          <InfoRow icon="location-outline" label="Endereço" value={formatAddress(order.address)} />
-          {order.address.reference ? (
-            <InfoRow icon="flag-outline" label="Referência" value={order.address.reference} />
-          ) : null}
-          <View style={styles.cardActions}>
-            <Button
-              title="Abrir no mapa"
-              icon="navigate-outline"
-              variant="secondary"
-              style={styles.flex}
-              onPress={() =>
-                openUrl(
-                  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                    formatAddress(order.address),
-                  )}`,
-                  "Nenhum app de mapas disponível.",
-                )
-              }
-            />
-            {clientPhone ? (
-              <Button
-                title="Ligar"
-                icon="call-outline"
-                variant="secondary"
-                style={styles.flex}
-                onPress={() =>
-                  openUrl(`tel:${clientPhone}`, "O aparelho não conseguiu iniciar a ligação.")
-                }
-              />
-            ) : null}
-          </View>
-        </Card>
-
-        <Card>
-          <InfoRow icon="cube-outline" label="Quantidade" value={order.quantity} />
-          <InfoRow icon="cash-outline" label="Valor" value={formatCurrency(order.amount)} />
-          <InfoRow icon="time-outline" label="Recebido em" value={formatDateTime(order.date)} />
+        <SectionTitle>Pedido</SectionTitle>
+        <ListGroup>
+          <DetailRow label="Quantidade" value={order.quantity} />
+          <DetailRow label="Valor" value={formatCurrency(order.amount)} />
           {order.finishedAt ? (
-            <InfoRow
-              icon="checkmark-circle-outline"
-              label="Finalizado em"
-              value={formatDateTime(order.finishedAt)}
-            />
+            <DetailRow label="Finalizado em" value={formatDateTime(order.finishedAt)} />
           ) : null}
-        </Card>
+        </ListGroup>
 
-        <Card>
-          <InfoRow
-            icon="bicycle-outline"
-            label="Entregador"
-            value={order.deliveryman?.name ?? "Sem entregador"}
+        <SectionTitle>Entregador</SectionTitle>
+        <ListGroup>
+          <ListRow
+            title={order.deliveryman?.name ?? "Sem entregador"}
+            subtitle={order.deliveryman?.phone ? phoneMask(order.deliveryman.phone) : undefined}
+            muted={!order.deliveryman}
+            right={
+              canManage && order.status !== "finished" ? (
+                <Button
+                  title={order.deliveryman ? "Trocar" : "Atribuir"}
+                  variant="ghost"
+                  disabled={!online}
+                  loading={assign.isPending}
+                  onPress={() => setPickerOpen(true)}
+                />
+              ) : undefined
+            }
           />
-          {canManage && order.status !== "finished" ? (
-            <Button
-              title={order.deliveryman ? "Trocar entregador" : "Atribuir entregador"}
-              icon="swap-horizontal"
-              variant="ghost"
-              disabled={!online}
-              loading={assign.isPending}
-              onPress={() => setPickerOpen(true)}
-            />
-          ) : null}
-        </Card>
+        </ListGroup>
       </ScrollView>
 
       {action ? (
@@ -281,20 +264,24 @@ function DeliverymanPicker({
             renderItem={({ item }) => {
               const selected = item.id === current.deliveryman?.id;
               return (
-                <Pressable
+                <TouchableRipple
                   accessibilityRole="button"
                   accessibilityState={{ selected }}
                   onPress={() => onSelect(item)}
-                  style={({ pressed }) => [styles.option, pressed && styles.optionPressed]}
+                  style={styles.option}
                 >
-                  <View style={styles.flex}>
-                    <Text style={styles.optionTitle}>{item.name}</Text>
-                    {item.phone ? (
-                      <Text style={styles.optionSubtitle}>{phoneMask(item.phone)}</Text>
+                  <>
+                    <View style={styles.flex}>
+                      <Text style={styles.optionTitle}>{item.name}</Text>
+                      {item.phone ? (
+                        <Text style={styles.optionSubtitle}>{phoneMask(item.phone)}</Text>
+                      ) : null}
+                    </View>
+                    {selected ? (
+                      <Ionicons name="checkmark" size={22} color={colors.primary} />
                     ) : null}
-                  </View>
-                  {selected ? <Ionicons name="checkmark" size={22} color={colors.primary} /> : null}
-                </Pressable>
+                  </>
+                </TouchableRipple>
               );
             }}
           />
@@ -307,17 +294,31 @@ function DeliverymanPicker({
 const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  titleRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  title: { fontSize: font.heading, fontWeight: "800", color: colors.text },
-  link: { fontSize: font.body, color: colors.primary, fontWeight: "600", marginTop: 2 },
-  cardActions: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm },
+  hero: { gap: spacing.xs, paddingBottom: spacing.sm },
+  heroTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  orderId: { fontSize: font.small, color: colors.textMuted, fontVariant: ["tabular-nums"] },
+  clientName: {
+    fontSize: font.heading,
+    fontWeight: "600",
+    color: colors.text,
+    letterSpacing: -0.3,
+    marginTop: spacing.xs,
+  },
+  address: { fontSize: font.body, color: colors.text, lineHeight: 22 },
+  reference: { fontSize: font.small, color: colors.textMuted },
+  heroActions: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md },
   footer: {
     padding: spacing.lg,
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
-  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.35)" },
+  backdrop: { flex: 1, backgroundColor: colors.overlay },
   sheet: {
     maxHeight: "70%",
     backgroundColor: colors.surface,
@@ -327,7 +328,7 @@ const useStyles = makeStyles((colors) => ({
   },
   sheetTitle: {
     fontSize: font.title,
-    fontWeight: "700",
+    fontWeight: "600",
     color: colors.text,
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.sm,
@@ -339,7 +340,6 @@ const useStyles = makeStyles((colors) => ({
     paddingVertical: spacing.md,
     minHeight: 56,
   },
-  optionPressed: { backgroundColor: colors.background },
-  optionTitle: { fontSize: font.body, fontWeight: "600", color: colors.text },
+  optionTitle: { fontSize: font.body, fontWeight: "500", color: colors.text },
   optionSubtitle: { fontSize: font.small, color: colors.textMuted },
 }));

@@ -21,24 +21,10 @@ export function DashboardReportScreen() {
       {data ? (
         <>
           <StatGrid>
-            <StatCard icon="cube-outline" label="Pedidos" value={formatNumber(data.totalOrders)} />
-            <StatCard
-              icon="checkmark-done-outline"
-              label="Finalizados"
-              value={formatNumber(data.completedOrders)}
-              tone="success"
-            />
-            <StatCard
-              icon="time-outline"
-              label="Pendentes"
-              value={formatNumber(data.pendingOrders)}
-              tone="warning"
-            />
-            <StatCard
-              icon="cash-outline"
-              label="Receita"
-              value={formatCurrency(data.totalRevenue)}
-            />
+            <StatCard label="Pedidos" value={formatNumber(data.totalOrders)} />
+            <StatCard label="Finalizados" value={formatNumber(data.completedOrders)} />
+            <StatCard label="Pendentes" value={formatNumber(data.pendingOrders)} />
+            <StatCard label="Receita" value={formatCurrency(data.totalRevenue)} />
           </StatGrid>
 
           {data.totalOrders === 0 ? (

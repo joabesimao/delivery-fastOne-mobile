@@ -4,18 +4,10 @@ import { useDeliverymen } from "@/modules/deliveries/presentation/hooks";
 import { describeError } from "@/shared/errors";
 import { formatCurrency, formatDate, formatNumber } from "@/shared/format";
 import { Select } from "@/shared/inputs";
-import {
-  confirm,
-  Fab,
-  IconButton,
-  ListRow,
-  ResourceList,
-  StatCard,
-  StatGrid,
-} from "@/shared/layout";
+import { confirm, Fab, FieldRow, ListRow, ResourceList, StatCard, StatGrid } from "@/shared/layout";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, View } from "react-native";
+import { Alert } from "react-native";
 import { consumptionKmPerLiter, vehicleLabel, type FleetFilter } from "../domain/Fleet";
 import {
   useFuelRefillList,
@@ -32,13 +24,13 @@ function useFleetFilters() {
   const [filter, setFilter] = useState<FleetFilter>({});
 
   const header = (
-    <View style={{ gap: 12 }}>
+    <FieldRow>
       <Select
         label="Veículo"
         value={filter.vehicleId ?? null}
         options={(vehicles.data ?? []).map((v) => ({ value: v.id, label: vehicleLabel(v) }))}
         onChange={(vehicleId) => setFilter((f) => ({ ...f, vehicleId: vehicleId ?? undefined }))}
-        placeholder="Todos os veículos"
+        placeholder="Todos"
         allowClear
       />
       <Select
@@ -48,10 +40,10 @@ function useFleetFilters() {
         onChange={(deliverymanId) =>
           setFilter((f) => ({ ...f, deliverymanId: deliverymanId ?? undefined }))
         }
-        placeholder="Todos os entregadores"
+        placeholder="Todos"
         allowClear
       />
-    </View>
+    </FieldRow>
   );
 
   return { filter, header };
@@ -95,24 +87,13 @@ export function FuelRefillsScreen() {
           {header}
           {items.length > 0 ? (
             <StatGrid>
+              <StatCard label="Litros" value={formatNumber(totals.liters, 1)} />
+              <StatCard label="Gasto" value={formatCurrency(totals.value)} />
               <StatCard
-                icon="water-outline"
-                label="Litros"
-                value={formatNumber(totals.liters, 1)}
-              />
-              <StatCard
-                icon="cash-outline"
-                label="Gasto"
-                value={formatCurrency(totals.value)}
-                tone="warning"
-              />
-              <StatCard
-                icon="speedometer-outline"
                 label="Consumo médio"
                 value={totals.consumption ? `${formatNumber(totals.consumption, 1)} km/L` : "—"}
-                tone="success"
               />
-              <StatCard icon="list-outline" label="Registros" value={String(items.length)} />
+              <StatCard label="Registros" value={String(items.length)} />
             </StatGrid>
           ) : null}
         </>
@@ -120,12 +101,12 @@ export function FuelRefillsScreen() {
       emptyTitle="Nenhum abastecimento"
       emptyDescription="Ajuste os filtros ou registre um abastecimento."
       errorMessage={describeError}
+      hint={manager ? "Segure um registro para excluir" : null}
       fab={<Fab label="Abastecimento" onPress={() => router.push("/fuel-refill")} />}
       renderItem={({ item }) => {
         const consumption = consumptionKmPerLiter(item);
         return (
           <ListRow
-            icon="speedometer-outline"
             title={`${item.vehiclePlate} · ${formatCurrency(item.totalValue)}`}
             subtitle={`${formatNumber(item.liters, 2)} L · ${formatNumber(item.km)} km${
               consumption ? ` · ${formatNumber(consumption, 1)} km/L` : ""
@@ -136,16 +117,7 @@ export function FuelRefillsScreen() {
                 ? () => router.push({ pathname: "/fuel-refill", params: { id: item.id } })
                 : undefined
             }
-            right={
-              manager ? (
-                <IconButton
-                  icon="trash-outline"
-                  label="Excluir abastecimento"
-                  tone="danger"
-                  onPress={() => void askRemove(item.id)}
-                />
-              ) : undefined
-            }
+            onLongPress={manager ? () => void askRemove(item.id) : undefined}
           />
         );
       }}
@@ -176,10 +148,10 @@ export function OilChangesScreen() {
       emptyTitle="Nenhuma troca de óleo"
       emptyDescription="Ajuste os filtros ou registre uma troca."
       errorMessage={describeError}
+      hint={manager ? "Segure um registro para excluir" : null}
       fab={<Fab label="Troca de óleo" onPress={() => router.push("/oil-change")} />}
       renderItem={({ item }) => (
         <ListRow
-          icon="construct-outline"
           title={`${item.vehiclePlate} · ${formatNumber(item.km)} km`}
           subtitle={`Próxima troca: ${formatNumber(item.nextChangeKm)} km`}
           meta={`${formatDate(item.changeDate)} · ${item.deliverymanName || "—"}`}
@@ -188,16 +160,7 @@ export function OilChangesScreen() {
               ? () => router.push({ pathname: "/oil-change", params: { id: item.id } })
               : undefined
           }
-          right={
-            manager ? (
-              <IconButton
-                icon="trash-outline"
-                label="Excluir troca"
-                tone="danger"
-                onPress={() => void askRemove(item.id)}
-              />
-            ) : undefined
-          }
+          onLongPress={manager ? () => void askRemove(item.id) : undefined}
         />
       )}
     />

@@ -4,7 +4,15 @@ import { useSession } from "@/modules/auth/presentation/useSession";
 import { describeError } from "@/shared/errors";
 import { cpfDigits, cpfMask, isValidCpf, phoneDigits, phoneMask } from "@/shared/format";
 import { includesText, SearchField } from "@/shared/inputs";
-import { confirm, Fab, FormScreen, IconButton, ListRow, ResourceList } from "@/shared/layout";
+import {
+  confirm,
+  Fab,
+  FieldRow,
+  FormScreen,
+  IconButton,
+  ListRow,
+  ResourceList,
+} from "@/shared/layout";
 import { Banner, Button, LoadingState, TextField } from "@/shared/ui";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
@@ -59,6 +67,7 @@ export function DeliverymenScreen() {
       }
       emptyTitle={search ? "Nenhum entregador encontrado" : "Nenhum entregador cadastrado"}
       errorMessage={describeError}
+      hint={admin ? "Segure um item para excluir" : null}
       fab={
         admin ? (
           <Fab
@@ -70,11 +79,11 @@ export function DeliverymenScreen() {
       }
       renderItem={({ item }) => (
         <ListRow
-          icon="bicycle-outline"
           title={deliverymanName(item)}
           subtitle={phoneMask(item.phone)}
           meta={`CNH ${item.qualification}${item.cpf ? ` · CPF ${cpfMask(item.cpf)}` : ""}`}
           onPress={admin ? () => router.push(`/deliverymen/${item.id}`) : undefined}
+          onLongPress={admin ? () => void askRemove(item) : undefined}
           right={
             <>
               <IconButton
@@ -83,14 +92,6 @@ export function DeliverymenScreen() {
                 tone="primary"
                 onPress={() => void Linking.openURL(`tel:${phoneDigits(item.phone)}`)}
               />
-              {admin ? (
-                <IconButton
-                  icon="trash-outline"
-                  label={`Excluir ${item.name}`}
-                  tone="danger"
-                  onPress={() => void askRemove(item)}
-                />
-              ) : null}
             </>
           }
         />
@@ -167,7 +168,6 @@ function DeliverymanForm({
       footer={
         <Button
           title={deliveryman ? "Salvar alterações" : "Cadastrar entregador"}
-          icon="checkmark"
           onPress={submit}
           loading={save.isPending}
           disabled={!online}
@@ -177,34 +177,38 @@ function DeliverymanForm({
     >
       {!online ? <Banner tone="error" message="Sem internet. Conecte-se para salvar." /> : null}
       {save.isError ? <Banner tone="error" message={describeError(save.error)} /> : null}
-      <TextField
-        label="Nome"
-        value={name}
-        onChangeText={setName}
-        error={errors.name}
-        autoCapitalize="words"
-      />
-      <TextField
-        label="Sobrenome"
-        value={lastName}
-        onChangeText={setLastName}
-        error={errors.lastName}
-        autoCapitalize="words"
-      />
-      <TextField
-        label="Telefone"
-        value={phone}
-        onChangeText={(v) => setPhone(phoneMask(v))}
-        keyboardType="phone-pad"
-        error={errors.phone}
-      />
-      <TextField
-        label="CPF"
-        value={cpf}
-        onChangeText={(v) => setCpf(cpfMask(v))}
-        keyboardType="number-pad"
-        error={errors.cpf}
-      />
+      <FieldRow>
+        <TextField
+          label="Nome"
+          value={name}
+          onChangeText={setName}
+          error={errors.name}
+          autoCapitalize="words"
+        />
+        <TextField
+          label="Sobrenome"
+          value={lastName}
+          onChangeText={setLastName}
+          error={errors.lastName}
+          autoCapitalize="words"
+        />
+      </FieldRow>
+      <FieldRow>
+        <TextField
+          label="Telefone"
+          value={phone}
+          onChangeText={(v) => setPhone(phoneMask(v))}
+          keyboardType="phone-pad"
+          error={errors.phone}
+        />
+        <TextField
+          label="CPF"
+          value={cpf}
+          onChangeText={(v) => setCpf(cpfMask(v))}
+          keyboardType="number-pad"
+          error={errors.cpf}
+        />
+      </FieldRow>
       <TextField
         label="Número da CNH"
         value={qualification}

@@ -12,11 +12,11 @@ import {
   phoneMask,
 } from "@/shared/format";
 import { Chip, Select } from "@/shared/inputs";
-import { FormScreen } from "@/shared/layout";
+import { FieldRow, FormScreen, ListGroup } from "@/shared/layout";
 import { secureStorage } from "@/core/storage/secureStorage";
 import { makeStyles } from "@/shared/ThemeProvider";
 import { font, spacing } from "@/shared/theme";
-import { Banner, Button, Card, InfoRow, SectionTitle, TextField } from "@/shared/ui";
+import { Banner, Button, DetailRow, SectionTitle, TextField } from "@/shared/ui";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
@@ -166,16 +166,9 @@ export function NewDeliveryScreen() {
       <FormScreen
         footer={
           <>
-            <Button
-              title="Nova entrega"
-              variant="secondary"
-              icon="add"
-              onPress={reset}
-              style={styles.flex}
-            />
+            <Button title="Nova entrega" variant="secondary" onPress={reset} style={styles.flex} />
             <Button
               title="Ver entrega"
-              icon="open-outline"
               onPress={() =>
                 created.orderId !== null
                   ? router.replace(`/delivery/${created.orderId}`)
@@ -186,20 +179,19 @@ export function NewDeliveryScreen() {
           </>
         }
       >
-        <Banner
-          tone="success"
-          message={`Entrega ${created.orderId !== null ? `#${created.orderId} ` : ""}criada com sucesso.`}
-        />
-        <Card>
-          <InfoRow icon="person-outline" label="Cliente" value={created.clientName} />
-          <InfoRow
-            icon="location-outline"
-            label="Endereço"
-            value={`${created.street}, ${created.number} · ${created.neighborhood}, ${created.city}`}
-          />
-          <InfoRow icon="cube-outline" label="Quantidade" value={created.quantity} />
-          <InfoRow icon="cash-outline" label="Valor" value={created.amount} />
-        </Card>
+        <View style={styles.done}>
+          <Text style={styles.doneLabel}>
+            {created.orderId !== null ? `Pedido #${created.orderId} criado` : "Pedido criado"}
+          </Text>
+          <Text style={styles.doneClient}>{created.clientName}</Text>
+          <Text style={styles.doneAddress}>
+            {created.street}, {created.number} · {created.neighborhood}, {created.city}
+          </Text>
+        </View>
+        <ListGroup>
+          <DetailRow label="Quantidade" value={created.quantity} />
+          <DetailRow label="Valor" value={created.amount} />
+        </ListGroup>
         {formatPicker}
         <View style={styles.row}>
           <Button
@@ -225,7 +217,6 @@ export function NewDeliveryScreen() {
       footer={
         <Button
           title="Criar entrega"
-          icon="checkmark"
           onPress={submit}
           loading={create.isPending}
           disabled={!online}
@@ -260,17 +251,14 @@ export function NewDeliveryScreen() {
         placeholder="Buscar cliente"
       />
       {selected ? (
-        <Card>
-          <InfoRow icon="call-outline" label="Telefone" value={phoneMask(selected.client.phone)} />
-          <InfoRow
-            icon="location-outline"
-            label="Endereço"
-            value={formatClientAddress(selected.address)}
-          />
-          {selected.address.reference ? (
-            <InfoRow icon="flag-outline" label="Referência" value={selected.address.reference} />
-          ) : null}
-        </Card>
+        <View style={styles.clientInfo}>
+          <Text style={styles.clientLine}>{formatClientAddress(selected.address)}</Text>
+          <Text style={styles.clientMeta}>
+            {[phoneMask(selected.client.phone), selected.address.reference]
+              .filter(Boolean)
+              .join(" · ")}
+          </Text>
+        </View>
       ) : null}
 
       <SectionTitle>Pedido</SectionTitle>
@@ -283,21 +271,23 @@ export function NewDeliveryScreen() {
         allowClear
         loading={deliverymen.isLoading}
       />
-      <TextField
-        label="Quantidade"
-        value={quantity}
-        onChangeText={(v) => setQuantity(v.replace(/\D/g, ""))}
-        keyboardType="number-pad"
-        error={errors.quantity}
-      />
-      <TextField
-        label="Valor"
-        prefix="R$"
-        value={amount}
-        onChangeText={(v) => setAmount(currencyInputMask(v))}
-        keyboardType="number-pad"
-        error={errors.amount}
-      />
+      <FieldRow weights={[2, 3]}>
+        <TextField
+          label="Quantidade"
+          value={quantity}
+          onChangeText={(v) => setQuantity(v.replace(/\D/g, ""))}
+          keyboardType="number-pad"
+          error={errors.quantity}
+        />
+        <TextField
+          label="Valor"
+          prefix="R$"
+          value={amount}
+          onChangeText={(v) => setAmount(currencyInputMask(v))}
+          keyboardType="number-pad"
+          error={errors.amount}
+        />
+      </FieldRow>
       {formatPicker}
     </FormScreen>
   );
@@ -308,5 +298,24 @@ const useStyles = makeStyles((colors) => ({
   row: { flexDirection: "row", gap: spacing.md },
   formats: { gap: spacing.xs },
   chips: { gap: spacing.sm },
-  label: { fontSize: font.small, fontWeight: "600", color: colors.textMuted },
+  label: { fontSize: font.small, fontWeight: "500", color: colors.textMuted },
+  // Resumo do cliente escolhido: linha de apoio sob o seletor, sem card.
+  clientInfo: {
+    marginTop: -spacing.sm,
+    paddingLeft: spacing.md,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.primaryBorder,
+    gap: 2,
+  },
+  clientLine: { fontSize: font.small, color: colors.text, lineHeight: 18 },
+  clientMeta: { fontSize: font.caption, color: colors.textMuted },
+  done: { gap: 2, paddingVertical: spacing.sm },
+  doneLabel: { fontSize: font.small, fontWeight: "500", color: colors.success },
+  doneClient: {
+    fontSize: font.heading,
+    fontWeight: "600",
+    color: colors.text,
+    letterSpacing: -0.3,
+  },
+  doneAddress: { fontSize: font.body, color: colors.textMuted },
 }));

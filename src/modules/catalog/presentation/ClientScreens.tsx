@@ -4,7 +4,7 @@ import { useSession } from "@/modules/auth/presentation/useSession";
 import { describeError } from "@/shared/errors";
 import { cpfDigits, cpfMask, isValidCpf, phoneDigits, phoneMask } from "@/shared/format";
 import { Chip, includesText, SearchField, Select } from "@/shared/inputs";
-import { confirm, Fab, FormScreen, ListRow, ResourceList } from "@/shared/layout";
+import { confirm, Fab, FieldRow, FormScreen, ListRow, ResourceList } from "@/shared/layout";
 import { Badge, Banner, Button, LoadingState, SectionTitle, TextField } from "@/shared/ui";
 import { useTheme } from "@/shared/ThemeProvider";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -149,17 +149,12 @@ export function ClientsScreen() {
       }
       renderItem={({ item }) => (
         <ListRow
-          icon="person-outline"
           title={item.name}
           subtitle={formatClientAddress(item.address)}
           meta={`${phoneMask(item.phone)} · CPF ${cpfMask(item.cpf)}`}
           muted={!item.active}
           onPress={() => actions(item)}
-          right={
-            !item.active ? (
-              <Badge label="Inativo" color={colors.textMuted} background={colors.surfaceMuted} />
-            ) : undefined
-          }
+          right={!item.active ? <Badge label="Inativo" color={colors.textMuted} /> : undefined}
         />
       )}
     />
@@ -255,7 +250,6 @@ function ClientForm({
       footer={
         <Button
           title={client ? "Salvar alterações" : "Cadastrar cliente"}
-          icon="checkmark"
           onPress={submit}
           loading={mutation.isPending}
           disabled={!online}
@@ -274,32 +268,37 @@ function ClientForm({
         error={errors.name}
         autoCapitalize="words"
       />
-      <TextField
-        label="CPF"
-        value={cpf}
-        onChangeText={(v) => setCpf(cpfMask(v))}
-        keyboardType="number-pad"
-        error={errors.cpf}
-        placeholder="000.000.000-00"
-      />
-      <TextField
-        label="Telefone"
-        value={phone}
-        onChangeText={(v) => setPhone(phoneMask(v))}
-        keyboardType="phone-pad"
-        error={errors.phone}
-        placeholder="(00) 00000-0000"
-      />
+      <FieldRow>
+        <TextField
+          label="CPF"
+          value={cpf}
+          onChangeText={(v) => setCpf(cpfMask(v))}
+          keyboardType="number-pad"
+          error={errors.cpf}
+          placeholder="000.000.000-00"
+        />
+        <TextField
+          label="Telefone"
+          value={phone}
+          onChangeText={(v) => setPhone(phoneMask(v))}
+          keyboardType="phone-pad"
+          error={errors.phone}
+          placeholder="(00) 00000-0000"
+        />
+      </FieldRow>
 
       <SectionTitle>Endereço</SectionTitle>
-      <TextField label="Rua" value={street} onChangeText={setStreet} error={errors.street} />
-      <TextField
-        label="Número"
-        value={number}
-        onChangeText={(v) => setNumber(v.replace(/\D/g, ""))}
-        keyboardType="number-pad"
-        error={errors.number}
-      />
+      <FieldRow weights={[3, 1]}>
+        <TextField label="Rua" value={street} onChangeText={setStreet} error={errors.street} />
+        <TextField
+          label="Nº"
+          value={number}
+          onChangeText={(v) => setNumber(v.replace(/\D/g, ""))}
+          keyboardType="number-pad"
+          error={errors.number}
+          accessibilityLabel="Número"
+        />
+      </FieldRow>
       <Select
         label="Cidade"
         value={city || null}

@@ -2,7 +2,7 @@ import { describeError } from "@/shared/errors";
 import { shareCsv, toCsv } from "@/shared/exporters";
 import { formatNumber, isoDay } from "@/shared/format";
 import { Chip } from "@/shared/inputs";
-import { ListRow, Screen } from "@/shared/layout";
+import { ListGroup, ListRow, Screen } from "@/shared/layout";
 import { spacing } from "@/shared/theme";
 import { Banner, Button, EmptyState, LoadingState, SectionTitle } from "@/shared/ui";
 import { useState } from "react";
@@ -70,16 +70,15 @@ export function RankingScreen() {
         ) : (
           <>
             <SectionTitle>{`${formatNumber(data.totalDeliveries)} entregas no período`}</SectionTitle>
-            {data.items.map((item, index) => (
-              <ListRow
-                key={item.deliverymanId}
-                icon={
-                  (page - 1) * RANKING_PAGE_SIZE + index < 3 ? "trophy-outline" : "person-outline"
-                }
-                title={`${(page - 1) * RANKING_PAGE_SIZE + index + 1}º ${item.name}`}
-                subtitle={`${formatNumber(item.total)} ${item.total === 1 ? "entrega" : "entregas"}`}
-              />
-            ))}
+            <ListGroup>
+              {data.items.map((item, index) => (
+                <ListRow
+                  key={item.deliverymanId}
+                  title={`${(page - 1) * RANKING_PAGE_SIZE + index + 1}º ${item.name}`}
+                  subtitle={`${formatNumber(item.total)} ${item.total === 1 ? "entrega" : "entregas"}`}
+                />
+              ))}
+            </ListGroup>
             {data.totalPages > 1 ? (
               <View style={{ flexDirection: "row", gap: spacing.md }}>
                 <Button

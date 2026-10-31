@@ -32,6 +32,6 @@ export function AppearanceScreen() {
 
 const useStyles = makeStyles((colors) => ({
   card: { gap: 12 },
-  title: { fontSize: font.title, fontWeight: "700", color: colors.text },
+  title: { fontSize: font.title, fontWeight: "600", color: colors.text },
   hint: { fontSize: font.small, color: colors.textMuted },
 }));
