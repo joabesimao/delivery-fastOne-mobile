@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import type { ReactElement, ReactNode } from "react";
+import { Children, type ReactElement, type ReactNode } from "react";
 import {
   Alert,
   FlatList,
@@ -13,10 +13,11 @@ import {
   View,
   type ListRenderItem,
 } from "react-native";
+import { Divider, FAB, IconButton as PaperIconButton, TouchableRipple } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { makeStyles, useTheme } from "./ThemeProvider";
 import { font, radius, spacing } from "./theme";
-import { EmptyState, ErrorState, LoadingState, type IconName } from "./ui";
+import { EmptyState, ErrorState, LoadingState, paperIcon, type IconName } from "./ui";
 
 // Tela de formulário: rolagem que respeita o teclado e rodapé fixo com as ações.
 export function FormScreen({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
@@ -39,6 +40,20 @@ export function FormScreen({ children, footer }: { children: ReactNode; footer?:
         <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>{footer}</View>
       ) : null}
     </KeyboardAvoidingView>
+  );
+}
+
+// Campos curtos lado a lado (rua + número, litros + preço). `weights` define a largura relativa.
+export function FieldRow({ children, weights }: { children: ReactNode; weights?: number[] }) {
+  const styles = useStyles();
+  return (
+    <View style={styles.fieldRow}>
+      {Children.toArray(children).map((child, index) => (
+        <View key={index} style={{ flex: weights?.[index] ?? 1 }}>
+          {child}
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -88,33 +103,81 @@ export function ListRow({
   const styles = useStyles();
   const { colors } = useTheme();
   return (
-    <Pressable
+    <TouchableRipple
       accessibilityRole={onPress ? "button" : undefined}
       accessibilityLabel={[title, subtitle, meta].filter(Boolean).join(", ")}
       onPress={onPress}
       onLongPress={onLongPress}
       disabled={!onPress && !onLongPress}
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed, muted && styles.muted]}
+      style={[styles.row, muted && styles.muted]}
     >
-      {icon ? (
-        <View style={styles.rowIcon}>
-          <Ionicons name={icon} size={20} color={colors.primary} />
-        </View>
-      ) : null}
-      <View style={styles.flex}>
-        <Text style={styles.rowTitle} numberOfLines={1}>
-          {title}
-        </Text>
-        {subtitle ? (
-          <Text style={styles.rowSubtitle} numberOfLines={2}>
-            {subtitle}
+      <>
+        {icon ? <Ionicons name={icon} size={20} color={colors.textMuted} /> : null}
+        <View style={styles.flex}>
+          <Text style={styles.rowTitle} numberOfLines={1}>
+            {title}
           </Text>
-        ) : null}
-        {meta ? <Text style={styles.rowMeta}>{meta}</Text> : null}
-      </View>
-      {right}
-      {onPress ? <Ionicons name="chevron-forward" size={18} color={colors.textSubtle} /> : null}
-    </Pressable>
+          {subtitle ? (
+            <Text style={styles.rowSubtitle} numberOfLines={2}>
+              {subtitle}
+            </Text>
+          ) : null}
+          {meta ? <Text style={styles.rowMeta}>{meta}</Text> : null}
+        </View>
+        {right}
+        {onPress ? <Ionicons name="chevron-forward" size={18} color={colors.textSubtle} /> : null}
+      </>
+    </TouchableRipple>
+  );
+}
+
+// Linhas soltas (fora de FlatList) agrupadas numa superfície só, com divisórias.
+export function ListGroup({ children }: { children: ReactNode }) {
+  const styles = useStyles();
+  const rows = Children.toArray(children);
+  if (rows.length === 0) return null;
+  return (
+    <View style={styles.group}>
+      {rows.map((row, index) => (
+        <View key={index}>
+          {index > 0 ? <Divider style={styles.groupDivider} /> : null}
+          {row}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+// Item de FlatList agrupada: mesma superfície do ListGroup, cantos só nas pontas.
+export function GroupedItem({
+  index,
+  count,
+  children,
+}: {
+  index: number;
+  count: number;
+  children: ReactNode;
+}) {
+  const styles = useStyles();
+  return (
+    <View
+      style={[
+        styles.groupItem,
+        index === 0 && styles.groupFirst,
+        index === count - 1 && styles.groupLast,
+      ]}
+    >
+      {children}
+    </View>
+  );
+}
+
+export function GroupSeparator() {
+  const styles = useStyles();
+  return (
+    <View style={styles.groupItem}>
+      <Divider style={styles.groupDivider} />
+    </View>
   );
 }
 
@@ -131,19 +194,13 @@ export function Fab({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
+    <FAB
+      label={label}
+      icon={paperIcon(icon)}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.fab,
-        { bottom: insets.bottom + spacing.lg },
-        pressed && styles.rowPressed,
-      ]}
-    >
-      <Ionicons name={icon} size={22} color={colors.onPrimary} />
-      <Text style={styles.fabText}>{label}</Text>
-    </Pressable>
+      color={colors.onPrimary}
+      style={[styles.fab, { bottom: insets.bottom + spacing.lg }]}
+    />
   );
 }
 
@@ -158,19 +215,16 @@ export function IconButton({
   onPress: () => void;
   tone?: "default" | "danger" | "primary";
 }) {
-  const styles = useStyles();
   const { colors } = useTheme();
   const color = { default: colors.textMuted, danger: colors.danger, primary: colors.primary }[tone];
   return (
-    <Pressable
-      accessibilityRole="button"
+    <PaperIconButton
+      icon={paperIcon(icon)}
+      iconColor={color}
+      size={20}
       accessibilityLabel={label}
-      hitSlop={6}
       onPress={onPress}
-      style={({ pressed }) => [styles.iconButton, pressed && styles.rowPressed]}
-    >
-      <Ionicons name={icon} size={20} color={color} />
-    </Pressable>
+    />
   );
 }
 
@@ -194,6 +248,7 @@ export function ResourceList<T>({
   emptyDescription,
   errorMessage,
   fab,
+  hint,
 }: {
   query: QueryLike<T>;
   items: T[];
@@ -204,6 +259,8 @@ export function ResourceList<T>({
   emptyDescription?: string;
   errorMessage: (error: unknown) => string;
   fab?: ReactElement | null;
+  // Linha discreta sob o cabeçalho, ex.: "Segure um item para excluir".
+  hint?: string | null;
 }) {
   const styles = useStyles();
 
@@ -217,11 +274,22 @@ export function ResourceList<T>({
       <FlatList
         data={items}
         keyExtractor={keyExtractor}
-        renderItem={renderItem}
+        renderItem={(info) => (
+          <GroupedItem index={info.index} count={items.length}>
+            {renderItem(info)}
+          </GroupedItem>
+        )}
         contentContainerStyle={[styles.list, fab ? styles.listWithFab : null]}
-        ListHeaderComponent={header}
+        ListHeaderComponent={
+          header || (hint && items.length > 0) ? (
+            <>
+              {header}
+              {hint && items.length > 0 ? <Text style={styles.hint}>{hint}</Text> : null}
+            </>
+          ) : undefined
+        }
         ListHeaderComponentStyle={styles.listHeader}
-        ItemSeparatorComponent={Separator}
+        ItemSeparatorComponent={GroupSeparator}
         keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />
@@ -231,10 +299,6 @@ export function ResourceList<T>({
       {fab}
     </View>
   );
-}
-
-function Separator() {
-  return <View style={{ height: spacing.sm }} />;
 }
 
 export function MenuItem({
@@ -252,43 +316,35 @@ export function MenuItem({
 }
 
 export function StatCard({
-  icon,
   label,
   value,
   hint,
-  tone = "primary",
 }: {
-  icon: IconName;
   label: string;
   value: string;
   hint?: string | null;
-  tone?: "primary" | "success" | "warning" | "danger";
 }) {
   const styles = useStyles();
-  const { colors } = useTheme();
-  const palette = {
-    primary: [colors.primary, colors.primarySoft],
-    success: [colors.success, colors.successSoft],
-    warning: [colors.warning, colors.warningSoft],
-    danger: [colors.danger, colors.dangerSoft],
-  }[tone];
   return (
     <View style={styles.stat}>
-      <View style={[styles.statIcon, { backgroundColor: palette[1] }]}>
-        <Ionicons name={icon} size={18} color={palette[0]} />
-      </View>
+      <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </Text>
-      <Text style={styles.statLabel}>{label}</Text>
       {hint ? <Text style={styles.statHint}>{hint}</Text> : null}
     </View>
   );
 }
 
+// Uma superfície só, com divisórias internas, em vez de um card por número.
+// A margem negativa esconde a borda direita/inferior das células da última coluna/linha.
 export function StatGrid({ children }: { children: ReactNode }) {
   const styles = useStyles();
-  return <View style={styles.statGrid}>{children}</View>;
+  return (
+    <View style={styles.statGrid}>
+      <View style={styles.statCells}>{children}</View>
+    </View>
+  );
 }
 
 // Formulário curto em folha sobre a lista (cidade, bairro, configurações).
@@ -306,7 +362,6 @@ export function FormSheet({
   footer: ReactNode;
 }) {
   const styles = useStyles();
-  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -318,14 +373,7 @@ export function FormSheet({
         <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg }]}>
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>{title}</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Fechar"
-              onPress={onClose}
-              hitSlop={8}
-            >
-              <Ionicons name="close" size={24} color={colors.text} />
-            </Pressable>
+            <IconButton icon="close" label="Fechar" onPress={onClose} />
           </View>
           {children}
           <View style={styles.sheetFooter}>{footer}</View>
@@ -361,80 +409,80 @@ const useStyles = makeStyles((colors) => ({
     borderTopColor: colors.border,
     backgroundColor: colors.surface,
   },
+  fieldRow: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start" },
   screen: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    padding: spacing.md,
-    minHeight: 60,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    minHeight: 56,
+  },
+  muted: { opacity: 0.6 },
+  rowTitle: { fontSize: font.body, fontWeight: "500", color: colors.text },
+  rowSubtitle: { fontSize: font.small, color: colors.textMuted, marginTop: 2 },
+  rowMeta: { fontSize: font.caption, color: colors.textSubtle, marginTop: 2 },
+  group: {
+    backgroundColor: colors.surface,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: "hidden",
+  },
+  groupItem: {
     backgroundColor: colors.surface,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: colors.border,
+    overflow: "hidden",
   },
-  rowPressed: { opacity: 0.85 },
-  muted: { opacity: 0.6 },
-  rowIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.sm,
-    backgroundColor: colors.primarySoft,
-    alignItems: "center",
-    justifyContent: "center",
+  groupFirst: {
+    borderTopWidth: 1,
+    borderTopLeftRadius: radius.md,
+    borderTopRightRadius: radius.md,
   },
-  rowTitle: { fontSize: font.body, fontWeight: "700", color: colors.text },
-  rowSubtitle: { fontSize: font.small, color: colors.textMuted, marginTop: 2 },
-  rowMeta: { fontSize: font.caption, color: colors.textSubtle, marginTop: 2 },
+  groupLast: {
+    borderBottomWidth: 1,
+    borderBottomLeftRadius: radius.md,
+    borderBottomRightRadius: radius.md,
+  },
+  groupDivider: { marginLeft: spacing.lg, backgroundColor: colors.border },
   fab: {
     position: "absolute",
     right: spacing.lg,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    height: 52,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primary,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  fabText: { fontSize: font.body, fontWeight: "700", color: colors.onPrimary },
-  iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: colors.primaryFill,
+    borderRadius: radius.md,
   },
   list: { padding: spacing.lg, flexGrow: 1 },
   listWithFab: { paddingBottom: 96 },
+  hint: { fontSize: font.caption, color: colors.textSubtle },
   listHeader: { marginBottom: spacing.md, gap: spacing.md },
   stat: {
-    flexBasis: "47%",
-    flexGrow: 1,
-    gap: spacing.xs,
-    padding: spacing.md,
+    width: "50%",
+    gap: 2,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.border,
+  },
+  statValue: {
+    fontSize: font.title + 2,
+    fontWeight: "600",
+    color: colors.text,
+    fontVariant: ["tabular-nums"],
+  },
+  statLabel: { fontSize: font.small, color: colors.textMuted },
+  statHint: { fontSize: font.caption, color: colors.textSubtle },
+  statGrid: {
+    backgroundColor: colors.surface,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.surface,
+    overflow: "hidden",
   },
-  statIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.sm,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.xs,
-  },
-  statValue: { fontSize: font.heading - 2, fontWeight: "800", color: colors.text },
-  statLabel: { fontSize: font.small, color: colors.textMuted },
-  statHint: { fontSize: font.caption, color: colors.textSubtle },
-  statGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
+  statCells: { flexDirection: "row", flexWrap: "wrap", marginRight: -1, marginBottom: -1 },
   sheetBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" },
   sheet: {
     backgroundColor: colors.background,
@@ -444,6 +492,6 @@ const useStyles = makeStyles((colors) => ({
     gap: spacing.lg,
   },
   sheetHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  sheetTitle: { fontSize: font.title, fontWeight: "700", color: colors.text },
+  sheetTitle: { fontSize: font.title, fontWeight: "600", color: colors.text },
   sheetFooter: { flexDirection: "row", gap: spacing.md },
 }));

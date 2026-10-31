@@ -189,7 +189,12 @@ const useStyles = makeStyles((colors) => ({
   barRow: { gap: spacing.xs },
   barLabels: { flexDirection: "row", justifyContent: "space-between", gap: spacing.sm },
   barLabel: { flex: 1, fontSize: font.small, color: colors.text },
-  barValue: { fontSize: font.small, fontWeight: "700", color: colors.text },
+  barValue: {
+    fontSize: font.small,
+    fontWeight: "600",
+    color: colors.text,
+    fontVariant: ["tabular-nums"],
+  },
   track: { height: 8, borderRadius: 4, backgroundColor: colors.surfaceMuted, overflow: "hidden" },
   bar: { height: 8, borderRadius: 4, backgroundColor: colors.chart[0] },
   columnFocus: { fontSize: font.small, color: colors.textMuted, marginBottom: spacing.sm },
@@ -215,5 +220,10 @@ const useStyles = makeStyles((colors) => ({
   legendRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   swatch: { width: 10, height: 10, borderRadius: radius.sm / 4 },
   legendLabel: { flex: 1, fontSize: font.small, color: colors.text },
-  legendValue: { fontSize: font.small, fontWeight: "700", color: colors.text },
+  legendValue: {
+    fontSize: font.small,
+    fontWeight: "600",
+    color: colors.text,
+    fontVariant: ["tabular-nums"],
+  },
 }));

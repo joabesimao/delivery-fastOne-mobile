@@ -1,12 +1,20 @@
 import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useMemo, useState } from "react";
-import { FlatList, Modal, Platform, Pressable, Switch, Text, TextInput, View } from "react-native";
+import { FlatList, Modal, Platform, Pressable, Text, TextInput, View } from "react-native";
+import {
+  HelperText,
+  Chip as PaperChip,
+  Switch,
+  TextInput as PaperTextInput,
+  TouchableRipple,
+} from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { formatDate } from "./format";
+import { GroupedItem, GroupSeparator, IconButton } from "./layout";
 import { makeStyles, useTheme } from "./ThemeProvider";
 import { font, radius, spacing } from "./theme";
-import { Button, EmptyState, type IconName } from "./ui";
+import { Button, EmptyState, paperIcon, type IconName } from "./ui";
 
 const normalize = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
@@ -102,28 +110,21 @@ export function Select<T extends string | number>({
   };
 
   return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${label}: ${selected?.label ?? placeholder}`}
+    <>
+      <PickerField
+        label={label}
+        text={loading ? "Carregando..." : (selected?.label ?? placeholder)}
+        placeholder={!loading && !selected}
+        icon="chevron-down"
+        error={error}
         onPress={() => setOpen(true)}
-        style={[styles.box, error ? styles.boxError : null]}
-      >
-        <Text style={[styles.boxText, !selected && styles.placeholder]} numberOfLines={1}>
-          {loading ? "Carregando..." : (selected?.label ?? placeholder)}
-        </Text>
-        <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
-      </Pressable>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      />
 
       <Modal visible={open} animationType="slide" onRequestClose={close}>
-        <View style={[styles.modal, { paddingTop: insets.top + spacing.md }]}>
+        <View style={[styles.modal, { paddingTop: insets.top + spacing.sm }]}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{label}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={close}>
-              <Ionicons name="close" size={26} color={colors.text} />
-            </Pressable>
+            <IconButton icon="close" label="Fechar" onPress={close} />
           </View>
           {options.length > 8 ? (
             <SearchField value={query} onChangeText={setQuery} autoFocus />
@@ -133,6 +134,7 @@ export function Select<T extends string | number>({
             keyExtractor={(item) => String(item.value)}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: insets.bottom + spacing.lg }}
+            ItemSeparatorComponent={GroupSeparator}
             ListHeaderComponent={
               allowClear && value !== null ? (
                 <Button
@@ -146,37 +148,91 @@ export function Select<T extends string | number>({
               ) : undefined
             }
             ListEmptyComponent={<EmptyState title="Nada encontrado" />}
-            renderItem={({ item }) => {
+            renderItem={({ item, index }) => {
               const isSelected = item.value === value;
               return (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSelected }}
-                  onPress={() => {
-                    onChange(item.value);
-                    close();
-                  }}
-                  style={({ pressed }) => [
-                    styles.option,
-                    isSelected && styles.optionSelected,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.flex}>
-                    <Text style={styles.optionText}>{item.label}</Text>
-                    {item.description ? (
-                      <Text style={styles.optionDescription}>{item.description}</Text>
-                    ) : null}
-                  </View>
-                  {isSelected ? (
-                    <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
-                  ) : null}
-                </Pressable>
+                <GroupedItem index={index} count={filtered.length}>
+                  <TouchableRipple
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                    onPress={() => {
+                      onChange(item.value);
+                      close();
+                    }}
+                    style={styles.option}
+                  >
+                    <>
+                      <View style={styles.flex}>
+                        <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                          {item.label}
+                        </Text>
+                        {item.description ? (
+                          <Text style={styles.optionDescription}>{item.description}</Text>
+                        ) : null}
+                      </View>
+                      {isSelected ? (
+                        <Ionicons name="checkmark" size={20} color={colors.primary} />
+                      ) : null}
+                    </>
+                  </TouchableRipple>
+                </GroupedItem>
               );
             }}
           />
         </View>
       </Modal>
+    </>
+  );
+}
+
+// Campo só de leitura com o mesmo contorno do TextField; o toque abre o seletor.
+function PickerField({
+  label,
+  text,
+  placeholder,
+  icon,
+  error,
+  onPress,
+}: {
+  label: string;
+  text: string;
+  placeholder?: boolean;
+  icon: IconName;
+  error?: string;
+  onPress: () => void;
+}) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  return (
+    <View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${text}`}
+        onPress={onPress}
+      >
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
+          <PaperTextInput
+            mode="outlined"
+            label={label}
+            value={text}
+            editable={false}
+            error={Boolean(error)}
+            textColor={placeholder ? colors.textSubtle : undefined}
+            right={<PaperTextInput.Icon icon={paperIcon(icon)} />}
+            outlineStyle={styles.outline}
+            style={styles.pickerInput}
+          />
+        </View>
+      </Pressable>
+      {error ? (
+        <HelperText type="error" padding="none">
+          {error}
+        </HelperText>
+      ) : null}
     </View>
   );
 }
@@ -228,18 +284,7 @@ export function DateField({
     });
 
   return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${label}: ${formatDate(value)}`}
-        onPress={open}
-        style={styles.box}
-      >
-        <Text style={styles.boxText}>{formatDate(value)}</Text>
-        <Ionicons name="calendar-outline" size={18} color={colors.textMuted} />
-      </Pressable>
-    </View>
+    <PickerField label={label} text={formatDate(value)} icon="calendar-outline" onPress={open} />
   );
 }
 
@@ -265,7 +310,7 @@ export function SwitchRow({
       <Switch
         value={value}
         onValueChange={onChange}
-        trackColor={{ true: colors.primary, false: colors.border }}
+        color={colors.primary}
         accessibilityLabel={label}
       />
     </View>
@@ -284,54 +329,40 @@ export function Chip({
   icon?: IconName;
 }) {
   const styles = useStyles();
-  const { colors } = useTheme();
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
+    <PaperChip
+      mode="outlined"
+      compact
+      selected={selected}
+      showSelectedCheck={false}
       onPress={onPress}
+      icon={icon ? paperIcon(icon) : undefined}
       style={[styles.chip, selected && styles.chipSelected]}
+      textStyle={[styles.chipText, selected && styles.chipTextSelected]}
     >
-      {icon ? (
-        <Ionicons name={icon} size={14} color={selected ? colors.primary : colors.textMuted} />
-      ) : null}
-      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
-    </Pressable>
+      {label}
+    </PaperChip>
   );
 }
 
 const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
-  pressed: { opacity: 0.85 },
   search: {
-    minHeight: 44,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  searchInput: { flex: 1, fontSize: font.body, color: colors.text, paddingVertical: spacing.sm },
-  field: { gap: spacing.xs },
-  label: { fontSize: font.small, fontWeight: "600", color: colors.textMuted },
-  box: {
     minHeight: 48,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surface,
   },
-  boxError: { borderColor: colors.danger },
-  boxText: { flex: 1, fontSize: font.body, color: colors.text },
-  placeholder: { color: colors.textSubtle },
-  error: { fontSize: font.caption, color: colors.danger },
+  searchInput: { flex: 1, fontSize: font.body, color: colors.text, paddingVertical: spacing.sm },
+  field: { gap: spacing.xs },
+  label: { fontSize: font.small, color: colors.textMuted },
+  outline: { borderRadius: radius.sm },
+  pickerInput: { fontSize: font.body, backgroundColor: colors.surface },
   iosDate: { alignItems: "flex-start" },
   modal: {
     flex: 1,
@@ -340,21 +371,17 @@ const useStyles = makeStyles((colors) => ({
     gap: spacing.md,
   },
   modalHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  modalTitle: { fontSize: font.title, fontWeight: "700", color: colors.text },
+  modalTitle: { fontSize: font.title, fontWeight: "600", color: colors.text },
   option: {
-    minHeight: 56,
+    minHeight: 52,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
-  optionSelected: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
-  optionText: { fontSize: font.body, fontWeight: "600", color: colors.text },
+  optionText: { fontSize: font.body, color: colors.text },
+  optionTextSelected: { fontSize: font.body, fontWeight: "500", color: colors.primary },
   optionDescription: { fontSize: font.small, color: colors.textMuted, marginTop: 2 },
   switchRow: {
     flexDirection: "row",
@@ -362,18 +389,8 @@ const useStyles = makeStyles((colors) => ({
     gap: spacing.md,
     paddingVertical: spacing.sm,
   },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
-    minHeight: 34,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  chipSelected: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
-  chipText: { fontSize: font.small, fontWeight: "600", color: colors.textMuted },
-  chipTextSelected: { color: colors.primary },
+  chip: { borderRadius: radius.sm, borderColor: colors.borderStrong },
+  chipSelected: { borderColor: colors.primaryBorder },
+  chipText: { fontSize: font.small, fontWeight: "500", color: colors.textMuted },
+  chipTextSelected: { fontSize: font.small, fontWeight: "500", color: colors.onPrimarySoft },
 }));
