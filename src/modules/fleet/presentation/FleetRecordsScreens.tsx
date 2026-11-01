@@ -108,6 +108,7 @@ export function FuelRefillsScreen() {
         return (
           <ListRow
             title={`${item.vehiclePlate} · ${formatCurrency(item.totalValue)}`}
+            mono
             subtitle={`${formatNumber(item.liters, 2)} L · ${formatNumber(item.km)} km${
               consumption ? ` · ${formatNumber(consumption, 1)} km/L` : ""
             }`}
@@ -153,6 +154,7 @@ export function OilChangesScreen() {
       renderItem={({ item }) => (
         <ListRow
           title={`${item.vehiclePlate} · ${formatNumber(item.km)} km`}
+          mono
           subtitle={`Próxima troca: ${formatNumber(item.nextChangeKm)} km`}
           meta={`${formatDate(item.changeDate)} · ${item.deliverymanName || "—"}`}
           onPress={

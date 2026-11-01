@@ -1,6 +1,7 @@
 import { container } from "@/main/container";
 import { queryKeys } from "@/main/queryKeys";
-import { StatusBadge } from "@/modules/deliveries/presentation/components";
+import { StatusBadge, statusColors } from "@/modules/deliveries/presentation/components";
+import { useTheme } from "@/shared/ThemeProvider";
 import { describeError } from "@/shared/errors";
 import { cpfMask, formatCurrency, phoneDigits, phoneMask } from "@/shared/format";
 import { SearchField } from "@/shared/inputs";
@@ -15,6 +16,7 @@ import { isEmptyResult, isSearchable } from "../domain/Search";
 
 // Busca global do cabeçalho do painel web: pedidos, clientes e entregadores.
 export function SearchScreen() {
+  const { colors } = useTheme();
   const router = useRouter();
   const [term, setTerm] = useState("");
   const query = useDebounced(term.trim());
@@ -58,6 +60,7 @@ export function SearchScreen() {
                 key={`o${o.id}`}
                 title={`#${o.id} · ${o.clientName}`}
                 subtitle={`${formatCurrency(o.amount)}${o.deliverymanName ? ` · ${o.deliverymanName}` : ""}`}
+                accent={statusColors(colors)[o.status].fg}
                 right={<StatusBadge status={o.status} />}
                 onPress={() => router.push(`/delivery/${o.id}`)}
               />

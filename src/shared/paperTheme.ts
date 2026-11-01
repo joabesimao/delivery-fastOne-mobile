@@ -41,7 +41,8 @@ export const buildPaperTheme = (scheme: ColorScheme, colors: ThemeColors): MD3Th
   const base = scheme === "dark" ? MD3DarkTheme : MD3LightTheme;
   return {
     ...base,
-    roundness: 2,
+    // No MD3 o botão usa 5 × roundness: 1.2 dá 6px, o mesmo raio dos campos (radius.sm).
+    roundness: 1.2,
     fonts,
     colors: {
       ...base.colors,

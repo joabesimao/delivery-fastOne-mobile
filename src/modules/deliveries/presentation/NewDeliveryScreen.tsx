@@ -27,6 +27,7 @@ import {
   type DeliverySheetData,
   type SheetFormat,
 } from "../domain/DeliverySheet";
+import { ClientSearch } from "./ClientSearch";
 import { useCreateDelivery, useDeliverymen } from "./hooks";
 
 const SHEET_FORMAT_KEY = "fastone.delivery.sheetFormat";
@@ -74,17 +75,6 @@ export function NewDeliveryScreen() {
   const activeRegisters = useMemo(
     () => (registers.data ?? []).filter((r) => r.client.active),
     [registers.data],
-  );
-  const registerOptions = useMemo(
-    () =>
-      activeRegisters
-        .map((r) => ({
-          value: r.id,
-          label: r.client.name,
-          description: `${phoneMask(r.client.phone)} · ${formatClientAddress(r.address)}`,
-        }))
-        .sort((a, b) => a.label.localeCompare(b.label)),
-    [activeRegisters],
   );
   const selected = activeRegisters.find((r) => r.id === registerId);
 
@@ -241,14 +231,12 @@ export function NewDeliveryScreen() {
       >
         Cliente
       </SectionTitle>
-      <Select
-        label="Cliente"
+      <ClientSearch
+        registers={activeRegisters}
         value={registerId}
-        options={registerOptions}
         onChange={setRegisterId}
         error={errors.register}
         loading={registers.isLoading}
-        placeholder="Buscar cliente"
       />
       {selected ? (
         <View style={styles.clientInfo}>

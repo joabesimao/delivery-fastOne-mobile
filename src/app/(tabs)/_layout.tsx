@@ -2,6 +2,7 @@ import { isCourier } from "@/modules/auth/domain/Session";
 import { useSession } from "@/modules/auth/presentation/useSession";
 import { useUnreadCount } from "@/modules/notifications/presentation/hooks";
 import { useTheme } from "@/shared/ThemeProvider";
+import { fontFamily } from "@/shared/theme";
 import type { IconName } from "@/shared/ui";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs, useRouter, type Href } from "expo-router";
@@ -26,7 +27,7 @@ function HeaderAction({ name, label, href }: { name: IconName; label: string; hr
       onPress={() => router.push(href)}
       style={{ paddingHorizontal: 16 }}
     >
-      <Ionicons name={name} size={22} color={colors.primary} />
+      <Ionicons name={name} size={22} color={colors.onChrome} />
     </Pressable>
   );
 }
@@ -44,10 +45,13 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarInactiveTintColor: colors.textSubtle,
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
-        headerStyle: { backgroundColor: colors.surface },
-        headerTitleStyle: { color: colors.text },
+        tabBarLabelStyle: { fontFamily: fontFamily.medium, fontSize: 11 },
+        headerStyle: { backgroundColor: colors.chrome },
+        headerShadowVisible: false,
+        headerTitleAlign: "left",
+        headerTitleStyle: { color: colors.onChrome, fontFamily: fontFamily.semibold, fontSize: 17 },
         sceneStyle: { backgroundColor: colors.background },
       }}
     >

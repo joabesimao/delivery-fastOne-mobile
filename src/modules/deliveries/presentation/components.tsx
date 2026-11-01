@@ -1,6 +1,6 @@
 import { makeStyles, useTheme } from "@/shared/ThemeProvider";
 import { formatCurrency, formatRelative } from "@/shared/format";
-import { font, spacing, type ThemeColors } from "@/shared/theme";
+import { font, fontFamily, spacing, type ThemeColors } from "@/shared/theme";
 import { Badge } from "@/shared/ui";
 import { memo } from "react";
 import { Text, View } from "react-native";
@@ -35,6 +35,7 @@ export const DeliveryCard = memo(function DeliveryCard({
   onPress,
 }: DeliveryCardProps) {
   const styles = useStyles();
+  const { colors } = useTheme();
   const { address } = delivery;
   const deliveryman = delivery.deliveryman?.name ?? "Sem entregador";
   return (
@@ -45,9 +46,10 @@ export const DeliveryCard = memo(function DeliveryCard({
       style={styles.row}
     >
       <>
+        <View style={[styles.bar, { backgroundColor: statusColors(colors)[delivery.status].fg }]} />
         <View style={styles.main}>
           <Text style={styles.top}>
-            #{delivery.id} · {formatRelative(delivery.date)}
+            <Text style={styles.id}>#{delivery.id}</Text> · {formatRelative(delivery.date)}
           </Text>
           <Text style={styles.client} numberOfLines={1}>
             {delivery.client.name}
@@ -78,7 +80,9 @@ const useStyles = makeStyles((colors) => ({
     paddingVertical: spacing.md,
   },
   main: { flex: 1, gap: 2 },
+  bar: { position: "absolute", left: 0, top: 0, bottom: 0, width: 3 },
   top: { fontSize: font.caption, color: colors.textSubtle, fontVariant: ["tabular-nums"] },
+  id: { fontFamily: fontFamily.monoMedium, fontSize: font.caption, color: colors.textMuted },
   client: { fontSize: font.body + 1, fontWeight: "600", color: colors.text },
   address: { fontSize: font.small, color: colors.textMuted, lineHeight: 18 },
   side: { alignItems: "flex-end", gap: 2 },
