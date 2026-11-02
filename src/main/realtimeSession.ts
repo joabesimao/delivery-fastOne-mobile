@@ -1,5 +1,4 @@
 import { useSyncExternalStore } from "react";
-import { container } from "./container";
 
 export interface RealtimeAccount {
   id: number;
@@ -24,8 +23,3 @@ const subscribe = (listener: () => void) => {
 };
 
 export const useRealtimeAccount = () => useSyncExternalStore(subscribe, () => account);
-
-const subscribeStatus = (listener: () => void) => container.realtime.onStatusChange(listener);
-
-export const useRealtimeStatus = () =>
-  useSyncExternalStore(subscribeStatus, () => container.realtime.getStatus());

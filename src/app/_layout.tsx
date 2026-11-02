@@ -110,7 +110,6 @@ function RootNavigator() {
         <Stack.Screen name="delivery/[id]" options={{ title: "Entrega" }} />
         <Stack.Screen name="fuel-refill" options={{ title: "Abastecimento" }} />
         <Stack.Screen name="oil-change" options={{ title: "Troca de óleo" }} />
-        <Stack.Screen name="settings/appearance" options={{ title: "Aparência" }} />
       </Stack.Protected>
 
       {/* Telas de gestão: o backend também bloqueia, aqui só não aparecem. */}

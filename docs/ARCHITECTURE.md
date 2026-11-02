@@ -51,7 +51,7 @@ src/app/
     dashboard more               gestor (admin, gerente_estoque, user); "more" = menu lateral do web
     fleet profile                entregador
     deliveries notifications     todos
-  delivery/[id]  fuel-refill  oil-change  settings/appearance      todos
+  delivery/[id]  fuel-refill  oil-change                          todos
   search  new-delivery  clients/  products/  deliverymen/  vehicles/
   cities  neighborhoods  fuel-refills  oil-changes  reports/                gestor
   users/  broadcast              admin
