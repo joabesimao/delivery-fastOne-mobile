@@ -214,7 +214,6 @@ const useStyles = makeStyles((colors) => ({
     paddingLeft: spacing.sm,
     paddingRight: spacing.lg,
   },
-  // Coluna fina à esquerda: o ponto de não lido não empurra o conteúdo.
   marker: { width: spacing.md, alignItems: "flex-end", paddingTop: 7 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary },
   icon: { marginTop: 1 },

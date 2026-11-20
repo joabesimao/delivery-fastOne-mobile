@@ -1,5 +1,3 @@
-// Folha de entrega impressa ao criar o pedido (mesmo layout do painel web).
-
 export type SheetFormat = "a4" | "thermal80" | "thermal58";
 
 export const sheetFormatLabels: Record<SheetFormat, string> = {
@@ -22,7 +20,6 @@ export interface DeliverySheetData {
   amount: string;
 }
 
-// Tamanho da página em pontos (72/pol). Térmica: largura do rolo, altura suficiente para a folha.
 const MM = 72 / 25.4;
 export const sheetPageSize = (format: SheetFormat) =>
   format === "a4"

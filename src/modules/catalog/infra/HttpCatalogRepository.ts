@@ -16,7 +16,6 @@ import type {
 } from "../domain/Catalog";
 import type { CatalogRepository } from "../domain/CatalogRepository";
 
-// Algumas listas respondem 204 sem corpo quando estão vazias.
 const list = <S extends z.ZodType>(schema: S) =>
   z.preprocess((value) => value ?? [], z.array(schema));
 
@@ -228,7 +227,6 @@ export class HttpCatalogRepository implements CatalogRepository {
   };
   updateAddress = (id: number, address: AddressInput) =>
     this.send("PUT", `/address/${id}`, addressBody(address));
-  // Apaga cliente e endereço juntos (rota de register, só admin).
   removeClient = (registerId: number) => this.send("DELETE", `/register/${registerId}`);
 
   async listDeliverymen(signal?: AbortSignal): Promise<Deliveryman[]> {
@@ -249,7 +247,6 @@ export class HttpCatalogRepository implements CatalogRepository {
     this.send("PUT", `/deliveryman/${id}`, deliverymanBody(input));
   removeDeliveryman = (id: number) => this.send("DELETE", `/deliveryman/${id}`);
 
-  // A API pagina em no máximo 100; o catálogo é pequeno, então busca tudo.
   async listProducts(signal?: AbortSignal): Promise<Product[]> {
     const products: Product[] = [];
     for (let offset = 0; ; offset += PRODUCT_PAGE) {

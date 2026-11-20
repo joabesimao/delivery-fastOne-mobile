@@ -7,7 +7,6 @@ import { FormScreen } from "@/shared/layout";
 import { Banner, Button, ErrorState, LoadingState, TextField } from "@/shared/ui";
 import { useState } from "react";
 
-// "Configurações de frota" do web: a cada quantos km a troca de óleo vence.
 export function FleetSettingsScreen() {
   const interval = useOilChangeInterval();
   if (interval.isLoading) return <LoadingState />;

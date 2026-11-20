@@ -35,7 +35,6 @@ export const periodRange = (period: OverviewPeriod, now: Date = new Date()) => {
   return { start: new Date(startOfToday.getTime() - days * DAY_MS), end: now };
 };
 
-// Variação da receita contra o período anterior de mesmo tamanho (null quando não há base).
 export const revenueTrend = ({
   deliveredRevenue,
   deliveredRevenuePreviousPeriod,

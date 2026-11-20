@@ -40,7 +40,6 @@ export class HttpAuthGateway implements AuthGateway {
   }
 
   async logout(accessToken: string): Promise<void> {
-    // Token explícito e sem refresh: um 401 aqui não deve disparar renovação.
     await this.http.request({
       method: "POST",
       path: "/logout",

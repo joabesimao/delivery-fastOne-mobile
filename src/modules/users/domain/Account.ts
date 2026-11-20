@@ -8,7 +8,6 @@ export interface Account {
   active: boolean;
 }
 
-// O backend só cria contas com estes papéis (add-staff-account-validation).
 export const CREATABLE_ROLES = [
   "admin",
   "user",
@@ -37,7 +36,6 @@ export interface AccountRepository {
   remove(id: number): Promise<void>;
 }
 
-// Mesmas regras do backend: e-mail válido e senha de 8 a 72 bytes.
 export const PASSWORD_MIN_LENGTH = 8;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

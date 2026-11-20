@@ -1,7 +1,6 @@
 import type { OverviewPeriod } from "@/modules/dashboard/domain/Overview";
 import type { FleetFilter } from "@/modules/fleet/domain/Fleet";
 
-// Chaves hierárquicas: invalidar ["deliveries"] atualiza a lista e todos os detalhes.
 export const queryKeys = {
   deliveries: ["deliveries"] as const,
   deliveryList: ["deliveries", "list"] as const,
@@ -22,7 +21,6 @@ export const queryKeys = {
   ranking: (range: { start: string; end: string }) => ["dashboard", "ranking", range] as const,
   dashboardReport: (range: { start: string; end: string }) =>
     ["dashboard", "reports", range] as const,
-  // Cadastros: invalidar ["catalog"] atualiza todas as listas.
   catalog: ["catalog"] as const,
   cities: ["catalog", "cities"] as const,
   neighborhoods: ["catalog", "neighborhoods"] as const,

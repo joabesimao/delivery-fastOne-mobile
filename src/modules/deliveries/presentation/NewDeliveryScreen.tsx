@@ -60,7 +60,6 @@ export function NewDeliveryScreen() {
   );
   const [created, setCreated] = useState<DeliverySheetData | null>(null);
 
-  // O formato da folha fica lembrado no aparelho, como a preferência de impressão do web.
   useEffect(() => {
     void secureStorage.get(SHEET_FORMAT_KEY).then((v) => {
       if (isSheetFormat(v)) setFormat(v);
@@ -287,7 +286,6 @@ const useStyles = makeStyles((colors) => ({
   formats: { gap: spacing.xs },
   chips: { gap: spacing.sm },
   label: { fontSize: font.small, fontWeight: "500", color: colors.textMuted },
-  // Resumo do cliente escolhido: linha de apoio sob o seletor, sem card.
   clientInfo: {
     marginTop: -spacing.sm,
     paddingLeft: spacing.md,

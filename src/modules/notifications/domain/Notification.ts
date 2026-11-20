@@ -31,14 +31,12 @@ export interface NotificationRepository {
   markRead(id: number): Promise<void>;
   markAllRead(): Promise<void>;
   remove(id: number): Promise<void>;
-  // Aviso geral do admin; devolve quantas contas receberam.
   broadcast(input: BroadcastInput): Promise<number>;
 }
 
 export interface BroadcastInput {
   title: string;
   body: string;
-  // Vazio = todos os perfis.
   roles: AccountRole[];
 }
 
@@ -57,8 +55,6 @@ export const notificationIcons: Record<NotificationType, string> = {
 
 export type NotificationRoute = "/fleet" | "/fuel-refills" | "/oil-changes";
 
-// Os links do backend apontam para rotas do painel web; no app viram a tela equivalente.
-// O entregador vê a frota na aba dele; o gestor vai para a listagem de registros.
 export const appRouteForLink = (
   link: string | null,
   courier: boolean,

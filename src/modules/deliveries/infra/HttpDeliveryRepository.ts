@@ -84,7 +84,6 @@ export class HttpDeliveryRepository implements DeliveryRepository {
 
   async getById(id: number, signal?: AbortSignal): Promise<Delivery> {
     const data = await this.http.request({ method: "GET", path: `/orderDelivery/${id}`, signal });
-    // A API responde 200 com `null` quando o pedido não existe.
     if (data === null || data === undefined)
       throw new AppError("not_found", "Pedido não encontrado.");
     return toDelivery(parseResponse(orderSchema, data));
@@ -95,8 +94,6 @@ export class HttpDeliveryRepository implements DeliveryRepository {
       method: "PUT",
       path: `/orderDelivery/${id}`,
       body: { status },
-      // O backend aceita delivered → delivered, mas recusa finished → finished com 409:
-      // repetir um "finalizar" cuja resposta se perdeu mostraria um erro falso.
       idempotent: status !== "finished",
     });
     return toDelivery(parseResponse(orderSchema, data));

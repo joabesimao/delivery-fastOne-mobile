@@ -37,7 +37,6 @@ describe("rankByText", () => {
   });
 
   it("prioriza nomes que começam com o texto, depois palavras e depois trechos", () => {
-    // "Mar": começa com (Marcos, Maria) > palavra começa (Ana Maria, João Mariano).
     expect(names("mar")).toEqual(["Marcos Lima", "Maria Souza", "Ana Maria Costa", "João Mariano"]);
   });
 

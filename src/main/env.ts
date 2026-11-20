@@ -4,7 +4,6 @@ const API_PORT = 3000;
 
 const trimSlash = (url: string) => url.replace(/\/+$/, "");
 
-// Em dev, sem .env, usa o IP da máquina que serve o Metro: no celular, `localhost` é o próprio aparelho.
 const devHostApiUrl = (): string | null => {
   if (!__DEV__) return null;
   const host = Constants.expoConfig?.hostUri?.split(":")[0];
@@ -17,11 +16,9 @@ const originOf = (url: string): string => {
 };
 
 const resolveEnv = () => {
-  // Referências literais: o Expo só embute EXPO_PUBLIC_* escritas assim.
   const apiUrl =
     process.env.EXPO_PUBLIC_API_URL || devHostApiUrl() || `http://localhost:${API_PORT}/api`;
   const socketUrl = process.env.EXPO_PUBLIC_SOCKET_URL || originOf(apiUrl);
-  // Cabeçalho da folha de entrega (mesmas variáveis VITE_DELIVERY_COMPANY_* do painel web).
   const company = {
     name: process.env.EXPO_PUBLIC_DELIVERY_COMPANY_NAME || "FastOne Delivery",
     document: process.env.EXPO_PUBLIC_DELIVERY_COMPANY_DOCUMENT || "",

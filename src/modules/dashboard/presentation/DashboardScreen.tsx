@@ -42,7 +42,6 @@ export function DashboardScreen() {
     queryFn: ({ signal }) => container.overview.load(periodRange(period), signal),
   });
 
-  // O gráfico de desempenho mostra pelo menos 7 dias, como no painel web.
   const range = periodRange(period === "today" ? "7d" : period);
   const chartRange = wholeDays(range.start, range.end);
   const performance = usePerformance(chartRange);
@@ -225,7 +224,6 @@ function PerfStat({ label, value }: { label: string; value: string }) {
   );
 }
 
-// Número secundário do resumo; com onPress vira atalho para a tela correspondente.
 function Metric({ label, value, onPress }: { label: string; value: string; onPress?: () => void }) {
   const styles = useStyles();
   return (

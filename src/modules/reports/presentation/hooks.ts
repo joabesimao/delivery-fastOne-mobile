@@ -29,7 +29,6 @@ export const useRanking = (range: DateRange, status: RankingStatus, page: number
     placeholderData: keepPreviousData,
   });
 
-// Exportação: percorre todas as páginas do ranking (100 por vez, o máximo da API).
 export const fetchFullRanking = async (range: DateRange, status: RankingStatus) => {
   const items = [];
   for (let page = 1; ; page += 1) {

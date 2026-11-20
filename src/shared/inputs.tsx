@@ -18,7 +18,6 @@ import { Button, EmptyState, paperIcon, type IconName } from "./ui";
 
 const normalize = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
-// Busca sem acento e sem diferenciar maiúsculas, igual à do painel web.
 export const includesText = (haystack: readonly (string | null | undefined)[], term: string) => {
   const query = normalize(term.trim());
   if (!query) return true;
@@ -72,7 +71,6 @@ export interface SelectOption<T extends string | number> {
   description?: string;
 }
 
-// Campo de escolha que abre uma lista com busca (substitui o Autocomplete do web).
 export function Select<T extends string | number>({
   label,
   value,
@@ -185,7 +183,6 @@ export function Select<T extends string | number>({
   );
 }
 
-// Campo só de leitura com o mesmo contorno do TextField; o toque abre o seletor.
 function PickerField({
   label,
   text,

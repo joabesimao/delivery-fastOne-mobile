@@ -4,12 +4,10 @@ import { isAvailableAsync, shareAsync } from "expo-sharing";
 
 const csvCell = (value: unknown) => {
   const text = value === null || value === undefined ? "" : String(value);
-  // Evita injeção de fórmula ao abrir no Excel/Sheets.
   const safe = /^[=+\-@]/.test(text) ? `'${text}` : text;
   return /[";\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 };
 
-// Ponto e vírgula + BOM: abre direto com acentos no Excel em pt-BR, como o CSV do painel web.
 export const toCsv = (header: readonly string[], rows: readonly (readonly unknown[])[]) =>
   "﻿" + [header, ...rows].map((row) => row.map(csvCell).join(";")).join("\n");
 

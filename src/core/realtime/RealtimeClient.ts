@@ -7,7 +7,6 @@ type Handler = Parameters<Socket["on"]>[1];
 export interface RealtimeClientOptions {
   url: string;
   getToken: () => string | null;
-  // Chamado quando o servidor recusa o handshake (token expirado). Deve renovar o token.
   onAuthRejected?: () => Promise<boolean>;
   ackTimeoutMs?: number;
   createSocket?: typeof io;
@@ -31,7 +30,6 @@ export class RealtimeClient {
     const socket = createSocket(this.options.url, {
       path: "/socket.io",
       transports: ["websocket"],
-      // Lido a cada (re)conexão, então a reconexão usa o token renovado.
       auth: (cb) => cb({ token: this.options.getToken() }),
     });
 
@@ -39,7 +37,6 @@ export class RealtimeClient {
     socket.on("disconnect", () => this.setStatus("connecting"));
     socket.io.on("reconnect_attempt", () => this.setStatus("connecting"));
     socket.on("connect_error", () => {
-      // socket.active = false: o servidor recusou (auth). Sem isso não há nova tentativa automática.
       if (socket.active) return;
       this.setStatus("disconnected");
       void this.recoverFromAuthError(socket);

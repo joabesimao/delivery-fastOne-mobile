@@ -30,7 +30,6 @@ export class SessionManager implements AccessTokenProvider {
     return () => this.listeners.delete(listener);
   }
 
-  // Restaura sem ir à rede: o app abre offline e o token é validado na primeira requisição.
   async restore(): Promise<void> {
     const session = await this.store.load().catch(() => null);
     this.setState(
@@ -49,7 +48,6 @@ export class SessionManager implements AccessTokenProvider {
 
   async logout(): Promise<void> {
     const token = this.state.session?.accessToken;
-    // Revogar no servidor é "melhor esforço": sem rede, o logout local acontece mesmo assim.
     if (token) await this.gateway.logout(token).catch(() => undefined);
     await this.endSession("user");
   }
@@ -58,11 +56,9 @@ export class SessionManager implements AccessTokenProvider {
     return this.state.session?.accessToken ?? null;
   }
 
-  // Single-flight: várias requisições com 401 ao mesmo tempo disparam um único refresh.
   refreshAccessToken(rejectedToken: string): Promise<string | null> {
     const current = this.state.session;
     if (!current) return Promise.resolve(null);
-    // Outra requisição já renovou enquanto esta estava em voo.
     if (current.accessToken !== rejectedToken) return Promise.resolve(current.accessToken);
 
     this.refreshing ??= this.doRefresh(current).finally(() => {
@@ -85,7 +81,6 @@ export class SessionManager implements AccessTokenProvider {
       this.setState({ status: "signedIn", session, signOutReason: null });
       return session.accessToken;
     } catch (error) {
-      // Falha de rede/servidor não derruba a sessão; só refresh recusado pelo backend.
       if (isAppError(error) && (error.kind === "unauthorized" || error.kind === "bad_request")) {
         await this.endSession("expired");
         return null;

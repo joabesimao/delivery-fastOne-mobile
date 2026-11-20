@@ -45,8 +45,6 @@ interface Target {
   date: Date;
 }
 
-// Quem registra e em qual veículo. O entregador usa o "meu veículo" e a data de agora;
-// o gestor escolhe veículo, entregador e data (como no painel web).
 function useTarget(initial?: { vehicleId: number; deliverymanId: number; date: Date }) {
   const { role } = useSession();
   const courier = isCourier(role);
@@ -139,7 +137,6 @@ function useKnownKm(vehicleId: number | null) {
   return lastKnownKm(refills.data ?? [], oilChanges.data ?? []);
 }
 
-// Na edição o registro vem da lista geral (a mesma que a tela de registros carregou).
 function useEditing<T extends { id: number }>(
   list: { data: T[] | undefined; isLoading: boolean },
   id?: string,

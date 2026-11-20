@@ -13,7 +13,6 @@ const PAGE_SIZE = 20;
 
 export const notificationSchema = z.object({
   id: z.number(),
-  // Tipos novos do backend não podem quebrar a lista inteira.
   type: z.enum(NOTIFICATION_TYPES).catch("admin_notice"),
   title: z.string(),
   body: z.string(),

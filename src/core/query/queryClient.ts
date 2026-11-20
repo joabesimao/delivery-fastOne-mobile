@@ -5,7 +5,6 @@ import { toAppError } from "../errors/AppError";
 
 const MAX_QUERY_RETRIES = 2;
 
-// O FetchHttpClient já repete falhas transitórias; aqui só cobre o que escapou (ex.: queda longa).
 export const shouldRetryQuery = (failureCount: number, error: unknown): boolean =>
   failureCount < MAX_QUERY_RETRIES && toAppError(error).isTransient;
 
@@ -21,7 +20,6 @@ export const createQueryClient = () =>
     },
   });
 
-// Sem isso o react-query não sabe quando o app volta ao primeiro plano nem quando a rede volta.
 export const bindQueryManagers = (): (() => void) => {
   onlineManager.setEventListener((setOnline) =>
     NetInfo.addEventListener((state) => {

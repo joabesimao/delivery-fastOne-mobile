@@ -20,7 +20,6 @@ import { font, fontFamily, radius, spacing } from "./theme";
 
 export type IconName = ComponentProps<typeof Ionicons>["name"];
 
-// Os componentes do Paper usam Material Community Icons; o app usa Ionicons.
 export const paperIcon = (name: IconName) => {
   const PaperIcon = ({ size, color }: { size: number; color: string }) => (
     <Ionicons name={name} size={size} color={color} />
@@ -45,7 +44,6 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
-// Só a ação principal da tela é "primary" (preenchido); o resto fica em contorno ou texto.
 const buttonMode = {
   primary: "contained",
   secondary: "outlined",
@@ -83,7 +81,6 @@ export function Button({
   );
 }
 
-// Mesmo recorte que o TextInput do Paper expõe pela ref.
 export type TextFieldHandle = Pick<TextInputInstance, "focus" | "blur" | "clear" | "isFocused">;
 
 interface TextFieldProps extends Omit<
@@ -93,7 +90,6 @@ interface TextFieldProps extends Omit<
   label: string;
   error?: string;
   prefix?: string;
-  // Ícone com ação no fim do campo (ex.: mostrar senha).
   action?: { icon: IconName; label: string; onPress: () => void };
   ref?: Ref<TextFieldHandle>;
 }
@@ -111,7 +107,6 @@ export function TextField({
   return (
     <View>
       <PaperTextInput
-        // O tipo do Paper exige a ref nativa e a dele ao mesmo tempo; a instância é a do Paper.
         ref={ref as never}
         mode="outlined"
         label={label}
@@ -140,7 +135,6 @@ export function TextField({
   );
 }
 
-// Status como ponto colorido + texto, sem pílula.
 export function Badge({ label, color }: { label: string; color: string }) {
   const styles = useStyles();
   return (
@@ -157,7 +151,6 @@ interface SegmentedOption<T extends string> {
   count?: number;
 }
 
-// Abas de texto com sublinhado (não o SegmentedButtons do Material). Contagem em mono.
 export function Segmented<T extends string>({
   options,
   value,
@@ -199,7 +192,6 @@ export function Segmented<T extends string>({
   );
 }
 
-// Par rótulo/valor numa linha só, para usar dentro de ListGroup (detalhes, perfil).
 export function DetailRow({ label, value }: { label: string; value: ReactNode }) {
   const styles = useStyles();
   return (
@@ -355,7 +347,6 @@ const useStyles = makeStyles((colors) => ({
     minHeight: 32,
     marginTop: spacing.md,
   },
-  // Rótulo de seção em caixa alta e espaçado, como em painel de operação.
   sectionTitleText: {
     fontSize: font.caption - 1,
     fontWeight: "600",

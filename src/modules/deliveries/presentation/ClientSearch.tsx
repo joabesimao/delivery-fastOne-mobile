@@ -16,8 +16,6 @@ const searchFields = (register: Register): SearchFields => ({
   extra: [register.address.street, register.address.neighborhood, register.address.city],
 });
 
-// Busca de cliente digitando direto no formulário: os resultados aparecem enquanto digita,
-// sem abrir o seletor em tela cheia. Acha por nome, telefone, CPF ou endereço.
 export function ClientSearch({
   registers,
   value,
@@ -33,7 +31,6 @@ export function ClientSearch({
 }) {
   const styles = useStyles();
   const [term, setTerm] = useState("");
-  // Depois de "Trocar", o campo volta já com o teclado aberto.
   const [focusSearch, setFocusSearch] = useState(false);
   const selected = registers.find((register) => register.id === value);
 

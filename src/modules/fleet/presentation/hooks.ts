@@ -26,7 +26,6 @@ const useMyVehicleId = () =>
     staleTime: Infinity,
   });
 
-// "Meu veículo" do entregador. O veículo traz o deliverymanId, que identifica as entregas dele.
 export const useMyVehicle = (enabled = true) => {
   const vehicles = useVehicles(enabled);
   const myVehicleId = useMyVehicleId();
@@ -54,7 +53,6 @@ export const useFuelRefills = (vehicleId: number | null) =>
 export const useOilChanges = (vehicleId: number | null) =>
   useOilChangeList({ vehicleId: vehicleId ?? 0 }, vehicleId !== null);
 
-// Lista geral (gestor): filtros opcionais por veículo e entregador.
 export const useFuelRefillList = (filter: FleetFilter, enabled = true) =>
   useQuery({
     queryKey: queryKeys.fuelRefills(filter),
@@ -81,7 +79,6 @@ const useFleetMutation = <V>(mutationFn: (variables: V) => Promise<void>) => {
     mutationFn,
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: queryKeys.fleet });
-      // O backend gera avisos de abastecimento/troca para os gestores.
       void client.invalidateQueries({ queryKey: queryKeys.notifications });
     },
   });

@@ -116,7 +116,6 @@ function UserForm({ account, onDone }: { account?: Account; onDone: () => void }
   const [confirmation, setConfirmation] = useState("");
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
-  // Contas existentes podem ter "gerente de estoque"; contas novas seguem o que o backend aceita.
   const roleOptions = (account ? ACCOUNT_ROLES : CREATABLE_ROLES).map((r) => ({
     value: r,
     label: roleLabels[r],

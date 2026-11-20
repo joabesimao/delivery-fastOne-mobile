@@ -18,7 +18,6 @@ const initials = (name: string) =>
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
 
-// Perfil do entregador (aba) e cabeçalho do menu "Mais" do gestor, que injeta as seções em `menu`.
 export function ProfileScreen({ menu }: { menu?: ReactNode }) {
   const styles = useStyles();
   const { colors, scheme, setPreference } = useTheme();

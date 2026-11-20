@@ -9,7 +9,6 @@ export interface ChartDatum {
   value: number;
 }
 
-// Barras horizontais de uma série só: rótulo e valor sempre visíveis (sem depender de cor).
 export function BarList({
   data,
   format = String,
@@ -47,7 +46,6 @@ export function BarList({
   );
 }
 
-// Colunas por dia; tocar numa coluna mostra o valor dela.
 export function ColumnChart({
   data,
   format = String,
@@ -99,7 +97,6 @@ export function ColumnChart({
   );
 }
 
-// Rosca com legenda e valores sempre visíveis; no máximo 3 fatias (o resto vira "Outros").
 export function Donut({
   data,
   format = String,
@@ -116,7 +113,6 @@ export function Donut({
   const stroke = 18;
   const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
-  // Espaço de 2px entre fatias, na cor da superfície.
   const gap = slices.filter((d) => d.value > 0).length > 1 ? 2 : 0;
 
   let offset = 0;

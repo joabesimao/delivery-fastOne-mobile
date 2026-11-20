@@ -17,7 +17,6 @@ import {
   useVehicles,
 } from "./hooks";
 
-// Filtros por veículo e entregador, iguais aos do painel web.
 function useFleetFilters() {
   const vehicles = useVehicles();
   const deliverymen = useDeliverymen(true);

@@ -74,11 +74,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 export const useTheme = () => useContext(ThemeContext);
 
-// Estilos que dependem das cores do tema; recriados só quando o tema muda.
 type Styles = Parameters<typeof StyleSheet.create>[0];
 
-// Estilo de texto (tem fontSize ou fontWeight) recebe a família IBM Plex do peso.
-// O fontWeight sai: no Android ele faz a fonte customizada cair na do sistema.
 const withFontFamily = <S extends Styles>(styles: S): S => {
   const result: Record<string, unknown> = {};
   for (const [name, style] of Object.entries(styles)) {

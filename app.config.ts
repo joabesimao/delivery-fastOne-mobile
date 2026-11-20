@@ -18,7 +18,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   orientation: "portrait",
   icon: "./assets/icon.png",
   scheme: "fastone",
-  // "automatic" deixa o app seguir o tema do sistema (o usuário pode fixar em Aparência).
   userInterfaceStyle: "automatic",
   ios: {
     supportsTablet: false,

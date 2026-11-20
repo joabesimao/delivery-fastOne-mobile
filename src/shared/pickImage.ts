@@ -10,7 +10,6 @@ export interface PickedImage {
 
 const MAX_SIDE = 1280;
 
-// Reduz e recomprime antes de mandar em base64: a API recusa imagens acima de 5 MB.
 const shrink = async (asset: ImagePicker.ImagePickerAsset): Promise<PickedImage | null> => {
   const context = ImageManipulator.manipulate(asset.uri);
   if (asset.width > MAX_SIDE || asset.height > MAX_SIDE) {
@@ -48,7 +47,6 @@ const launch = async (source: "camera" | "library") => {
   return shrink(result.assets[0]);
 };
 
-// Pergunta a origem (câmera ou galeria) e devolve a imagem pronta para enviar.
 export const pickImage = () =>
   new Promise<PickedImage | null>((resolve) =>
     Alert.alert(
