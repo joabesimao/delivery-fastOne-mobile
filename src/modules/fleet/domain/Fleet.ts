@@ -77,7 +77,6 @@ export const vehicleLabel = (vehicle: Pick<Vehicle, "plate" | "model" | "brand">
     .filter(Boolean)
     .join(" · ");
 
-// Mesmo cálculo do painel web: total só quando litros e preço formam um valor positivo.
 export const computeTotalValue = (liters: number, pricePerLiter: number): number | null => {
   const total = liters * pricePerLiter;
   return Number.isFinite(total) && total > 0 ? Math.round(total * 100) / 100 : null;

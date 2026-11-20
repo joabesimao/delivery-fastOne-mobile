@@ -1,5 +1,3 @@
-// Cadastros básicos da operação, nos mesmos formatos que o painel web usa.
-
 export type FieldErrors<K extends string> = Partial<Record<K, string>>;
 
 const hasErrors = (errors: object) => Object.keys(errors).length > 0;
@@ -36,7 +34,6 @@ export interface Client {
   registerId: number | null;
 }
 
-// "Register" no backend: o vínculo cliente + endereço que o pedido usa.
 export interface Register {
   id: number;
   client: Client;
@@ -109,7 +106,6 @@ export interface ProductInput {
   active: boolean;
   notes: string | null;
   variations: ProductVariation[];
-  // undefined = não mexe; null = remove a imagem.
   image?: { base64: string; mimeType: string } | null;
 }
 
@@ -121,7 +117,6 @@ export const formatClientAddress = (address: Address | AddressInput | null) =>
     ? `${address.street}, ${address.number} · ${address.neighborhood}, ${address.city}`
     : "Sem endereço";
 
-// Imagem do produto: o backend aceita até 5 MB em base64.
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export const base64Bytes = (base64: string) => {
@@ -177,7 +172,6 @@ export const validateProduct = (
   return errors;
 };
 
-// Variações incompletas são descartadas, como no web (o backend recusa atributo/valor vazio).
 export const cleanVariations = (variations: readonly ProductVariation[]) =>
   variations
     .map((v) => ({ attribute: v.attribute.trim(), value: v.value.trim() }))

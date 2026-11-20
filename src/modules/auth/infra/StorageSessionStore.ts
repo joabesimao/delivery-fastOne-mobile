@@ -21,9 +21,7 @@ export class StorageSessionStore implements SessionStore {
     try {
       const parsed = storedSessionSchema.safeParse(JSON.parse(raw));
       if (parsed.success) return parsed.data;
-    } catch {
-      // JSON corrompido: trata como sem sessão.
-    }
+    } catch {}
     await this.storage.remove(SESSION_KEY);
     return null;
   }

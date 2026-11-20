@@ -42,8 +42,6 @@ export function DeliveriesScreen() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filterCount = activeFilterCount(filters);
 
-  // Sem vínculo conta → entregador na API, o filtro "minhas" usa o entregador do veículo escolhido.
-  // É só conveniência de tela: quem garante o acesso é o backend.
   const filterMine = courier && onlyMine && deliverymanId !== null;
 
   const scoped = useMemo(() => {

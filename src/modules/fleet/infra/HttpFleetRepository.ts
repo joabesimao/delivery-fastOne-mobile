@@ -176,7 +176,6 @@ export class HttpFleetRepository implements FleetRepository {
     await this.http.request({ method: "DELETE", path: `/oil-change-log/${id}` });
   }
 
-  // Sem configuração salva a API devolve null.
   async getOilChangeInterval(signal?: AbortSignal): Promise<number | null> {
     const data = await this.http.request({ method: "GET", path: "/oil-change-config", signal });
     return (

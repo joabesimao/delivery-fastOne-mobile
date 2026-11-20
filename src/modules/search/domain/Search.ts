@@ -12,7 +12,6 @@ export interface SearchResults {
   deliverymen: { id: number; name: string; phone: string }[];
 }
 
-// A API ignora termos com menos de 2 letras.
 export const MIN_SEARCH_LENGTH = 2;
 
 export const isSearchable = (term: string) => term.trim().length >= MIN_SEARCH_LENGTH;

@@ -13,11 +13,9 @@ const PRESETS = [
 
 type Preset = (typeof PRESETS)[number]["days"] | "custom";
 
-// Período do relatório: atalhos de dias ou intervalo personalizado (como os filtros de data do web).
 export function useDateRange(initialDays: (typeof PRESETS)[number]["days"] = 30) {
   const [preset, setPreset] = useState<Preset>(initialDays);
   const [custom, setCustom] = useState<DateRange>(() => lastDays(initialDays));
-  // lastDays vai do início do primeiro dia ao fim de hoje: a chave da busca não muda a cada render.
   const range = preset === "custom" ? custom : lastDays(preset);
 
   const picker = (

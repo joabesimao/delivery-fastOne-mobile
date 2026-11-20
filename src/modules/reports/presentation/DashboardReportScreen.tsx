@@ -6,7 +6,6 @@ import { Banner, Card, EmptyState, LoadingState, SectionTitle } from "@/shared/u
 import { useDateRange } from "./RangePicker";
 import { useDashboardReport } from "./hooks";
 
-// "Relatórios do Dashboard" do web: totais, status, bairros e cidades do período.
 export function DashboardReportScreen() {
   const { range, picker } = useDateRange(30);
   const report = useDashboardReport(range);

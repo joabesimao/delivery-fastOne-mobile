@@ -21,11 +21,9 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-// Segura o splash até a fonte carregar e a sessão salva ser lida, para não piscar a tela de login.
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  // Se a fonte falhar, segue com a do sistema em vez de travar no splash.
   const [fontsLoaded, fontError] = useFonts({
     IBMPlexSans_400Regular,
     IBMPlexSans_500Medium,
@@ -71,7 +69,6 @@ function ThemedNavigation() {
 
   return (
     <NavigationThemeProvider value={navigationTheme}>
-      {/* O cabeçalho é sempre grafite, então a barra de status é clara nos dois temas. */}
       <StatusBar style="light" />
       <RootNavigator />
     </NavigationThemeProvider>
@@ -112,7 +109,6 @@ function RootNavigator() {
         <Stack.Screen name="oil-change" options={{ title: "Troca de óleo" }} />
       </Stack.Protected>
 
-      {/* Telas de gestão: o backend também bloqueia, aqui só não aparecem. */}
       <Stack.Protected guard={operator}>
         <Stack.Screen name="search" options={{ title: "Buscar" }} />
         <Stack.Screen name="new-delivery" options={{ title: "Realizar entrega" }} />

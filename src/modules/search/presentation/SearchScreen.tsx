@@ -14,7 +14,6 @@ import { useState } from "react";
 import { Linking } from "react-native";
 import { isEmptyResult, isSearchable } from "../domain/Search";
 
-// Busca global do cabeçalho do painel web: pedidos, clientes e entregadores.
 export function SearchScreen() {
   const { colors } = useTheme();
   const router = useRouter();

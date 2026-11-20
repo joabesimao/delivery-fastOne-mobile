@@ -14,7 +14,6 @@ const sessionReadySchema = z.object({
 
 const unreadSchema = z.object({ unreadCount: z.number() });
 
-// Tempo real só invalida o cache; quem está na tela refaz a busca, o resto fica para quando abrir.
 const bindRealtimeToCache = (client: QueryClient) => {
   const invalidateLive = () => {
     void client.invalidateQueries({ queryKey: queryKeys.deliveries });
@@ -45,7 +44,6 @@ const bindRealtimeToCache = (client: QueryClient) => {
     realtime.on("notification:deleted", onUnread),
   ];
 
-  // Ao reconectar, o que mudou durante a queda não chegou por evento.
   let wasConnected = false;
   const unsubscribeStatus = realtime.onStatusChange((status) => {
     if (status === "connected" && wasConnected) invalidateLive();
@@ -69,7 +67,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
       if (status === "signedIn") {
         realtime.connect();
       } else if (status === "signedOut") {
-        // Ordem do plano: sessão já limpa → cache → socket.
         queryClient.clear();
         realtime.disconnect();
         setRealtimeAccount(null);

@@ -11,7 +11,6 @@ import { Alert } from "react-native";
 import { buildDeliveriesReport, inRange } from "../domain/Reports";
 import { useDateRange } from "./RangePicker";
 
-// "Relatórios das Entregas" do web, calculado sobre a lista de pedidos.
 export function DeliveriesReportScreen() {
   const { range, picker } = useDateRange(30);
   const deliveries = useDeliveries();

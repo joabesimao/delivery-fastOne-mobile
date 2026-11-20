@@ -39,7 +39,6 @@ export const useCatalogDeliverymen = () =>
 export const useProducts = () =>
   useQuery({ queryKey: queryKeys.products, queryFn: ({ signal }) => catalog.listProducts(signal) });
 
-// Toda escrita de cadastro invalida os cadastros e o que depende deles (entregas, frota).
 const useCatalogMutation = <V, R = void>(
   mutationFn: (variables: V) => Promise<R>,
   extra: QueryKey[] = [],

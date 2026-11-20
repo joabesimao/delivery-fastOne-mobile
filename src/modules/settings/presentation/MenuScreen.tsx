@@ -15,7 +15,6 @@ interface Entry {
   visible?: boolean;
 }
 
-// Mesmo agrupamento do menu lateral do painel web.
 export function MenuScreen() {
   const router = useRouter();
   const { role } = useSession();

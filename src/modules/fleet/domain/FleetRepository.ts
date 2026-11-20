@@ -25,7 +25,6 @@ export interface FleetRepository {
   setOilChangeInterval(km: number): Promise<void>;
 }
 
-// Sem vínculo conta → entregador no backend, o próprio entregador escolhe o veículo dele.
 export interface VehiclePreference {
   get(): Promise<number | null>;
   set(vehicleId: number | null): Promise<void>;

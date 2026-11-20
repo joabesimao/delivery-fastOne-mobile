@@ -227,7 +227,6 @@ function ClientForm({
       ...validateClient(clientInput, isValidCpf),
       ...validateAddress(addressInput),
     };
-    // O backend também recusa CPF repetido; avisar antes poupa a ida à rede.
     if (!found.cpf && clients.data?.some((c) => c.cpf === clientInput.cpf && c.id !== client?.id)) {
       found.cpf = "Já existe um cliente com esse CPF.";
     }

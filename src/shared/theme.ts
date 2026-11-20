@@ -1,7 +1,5 @@
-// Azul da marca (#4361EE, o mesmo do painel web) com neutros puxados para o azul.
 const light = {
   primary: "#4361EE",
-  // Fundo de botão/FAB com texto branco; no escuro é mais fechado que o azul de texto.
   primaryFill: "#4361EE",
   primaryPressed: "#3451D1",
   primarySoft: "#E8ECFF",
@@ -27,12 +25,10 @@ const light = {
   disabled: "rgba(20,26,46,0.12)",
   onDisabled: "rgba(20,26,46,0.38)",
   overlay: "rgba(13,18,32,0.4)",
-  // Faixa grafite do cabeçalho: dá ao app cara de ferramenta de despacho.
   chrome: "#161B27",
   onChrome: "#F3F5F9",
   onChromeMuted: "#8F98AD",
   chromeBorder: "#262D3D",
-  // Ordem fixa, validada para daltonismo (dataviz validate_palette).
   chart: ["#4361EE", "#06B6D4", "#F59E0B"],
 };
 
@@ -78,7 +74,6 @@ export type ColorScheme = keyof typeof palettes;
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
 
-// Cantos contidos: ferramenta de trabalho, não app de consumo.
 export const radius = { sm: 6, md: 8, lg: 12, pill: 999 } as const;
 
 export const font = {
@@ -89,13 +84,10 @@ export const font = {
   heading: 24,
 } as const;
 
-// IBM Plex Sans: com fonte customizada cada peso é uma família separada, então
-// o makeStyles troca o fontWeight dos estilos pela família correspondente.
 export const fontFamily = {
   regular: "IBMPlexSans_400Regular",
   medium: "IBMPlexSans_500Medium",
   semibold: "IBMPlexSans_600SemiBold",
-  // Plex Mono para o que se confere de olho: nº do pedido, placa, km, horário.
   mono: "IBMPlexMono_400Regular",
   monoMedium: "IBMPlexMono_500Medium",
 } as const;

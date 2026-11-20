@@ -50,7 +50,6 @@ export function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Sem cabeçalho grafite aqui: a barra de status segue o tema. */}
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />
       <KeyboardAvoidingView
         style={styles.flex}

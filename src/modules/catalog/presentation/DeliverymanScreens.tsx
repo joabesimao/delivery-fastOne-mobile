@@ -147,7 +147,6 @@ function DeliverymanForm({
       qualification,
     };
     const found = validateDeliveryman(input, isValidCpf);
-    // Mesmas checagens de duplicidade que o web faz antes de enviar.
     if (!found.cpf && others.some((d) => d.cpf === input.cpf)) found.cpf = "CPF já cadastrado.";
     if (
       !found.qualification &&

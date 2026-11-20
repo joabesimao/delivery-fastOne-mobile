@@ -19,7 +19,6 @@ import { makeStyles, useTheme } from "./ThemeProvider";
 import { font, fontFamily, radius, spacing } from "./theme";
 import { EmptyState, ErrorState, LoadingState, paperIcon, type IconName } from "./ui";
 
-// Tela de formulário: rolagem que respeita o teclado e rodapé fixo com as ações.
 export function FormScreen({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -43,7 +42,6 @@ export function FormScreen({ children, footer }: { children: ReactNode; footer?:
   );
 }
 
-// Campos curtos lado a lado (rua + número, litros + preço). `weights` define a largura relativa.
 export function FieldRow({ children, weights }: { children: ReactNode; weights?: number[] }) {
   const styles = useStyles();
   return (
@@ -101,9 +99,7 @@ export function ListRow({
   onPress?: () => void;
   onLongPress?: () => void;
   muted?: boolean;
-  // Cor da barra de status na lateral esquerda (ex.: status da entrega).
   accent?: string;
-  // Título em Plex Mono: placas, códigos, quilometragem.
   mono?: boolean;
 }) {
   const styles = useStyles();
@@ -138,7 +134,6 @@ export function ListRow({
   );
 }
 
-// Linhas soltas (fora de FlatList) agrupadas numa superfície só, com divisórias.
 export function ListGroup({ children }: { children: ReactNode }) {
   const styles = useStyles();
   const rows = Children.toArray(children);
@@ -155,7 +150,6 @@ export function ListGroup({ children }: { children: ReactNode }) {
   );
 }
 
-// Item de FlatList agrupada: mesma superfície do ListGroup, cantos só nas pontas.
 export function GroupedItem({
   index,
   count,
@@ -244,7 +238,6 @@ interface QueryLike<T> {
   refetch: () => unknown;
 }
 
-// Estados de carregamento/erro/vazio iguais em todas as listas de cadastro.
 export function ResourceList<T>({
   query,
   items,
@@ -266,7 +259,6 @@ export function ResourceList<T>({
   emptyDescription?: string;
   errorMessage: (error: unknown) => string;
   fab?: ReactElement | null;
-  // Linha discreta sob o cabeçalho, ex.: "Segure um item para excluir".
   hint?: string | null;
 }) {
   const styles = useStyles();
@@ -343,8 +335,6 @@ export function StatCard({
   );
 }
 
-// Uma superfície só, com divisórias internas, em vez de um card por número.
-// A margem negativa esconde a borda direita/inferior das células da última coluna/linha.
 export function StatGrid({ children }: { children: ReactNode }) {
   const styles = useStyles();
   return (
@@ -354,7 +344,6 @@ export function StatGrid({ children }: { children: ReactNode }) {
   );
 }
 
-// Formulário curto em folha sobre a lista (cidade, bairro, configurações).
 export function FormSheet({
   visible,
   title,
@@ -390,7 +379,6 @@ export function FormSheet({
   );
 }
 
-// Confirmação antes de ação destrutiva; resolve true quando o usuário confirma.
 export const confirm = (title: string, message: string, confirmLabel = "Excluir") =>
   new Promise<boolean>((resolve) =>
     Alert.alert(

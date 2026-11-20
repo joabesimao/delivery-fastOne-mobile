@@ -15,7 +15,6 @@ const icon = (name: IconName) => {
   return TabIcon;
 };
 
-// Atalho no cabeçalho (busca global).
 function HeaderAction({ name, label, href }: { name: IconName; label: string; href: Href }) {
   const router = useRouter();
   const { colors } = useTheme();
@@ -88,7 +87,6 @@ export default function TabsLayout() {
         />
       </Tabs.Protected>
 
-      {/* Gestor: perfil + todos os módulos do menu lateral do web. */}
       <Tabs.Protected guard={!courier}>
         <Tabs.Screen name="more" options={{ title: "Mais", tabBarIcon: icon("menu-outline") }} />
       </Tabs.Protected>

@@ -11,7 +11,6 @@ export interface Session {
 
 export interface AuthTokens {
   accessToken: string;
-  // Na janela de tolerância do backend o refresh devolve só o accessToken.
   refreshToken?: string;
 }
 
@@ -33,8 +32,6 @@ export const isAccountRole = (value: unknown): value is AccountRole =>
 
 export const firstName = (name: string): string => name.trim().split(/\s+/)[0] ?? name;
 
-// Espelha os grupos de papéis do backend (src/main/config/roles.ts). O app só esconde;
-// quem bloqueia de verdade é a API.
 export const canOperate = (role: AccountRole): boolean => role !== "entregador";
 
 export const isFleetManager = (role: AccountRole): boolean =>

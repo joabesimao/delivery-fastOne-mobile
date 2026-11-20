@@ -15,7 +15,6 @@ export interface DateRange {
   end: Date;
 }
 
-// /dashboard/reports
 export interface DashboardReport {
   totalOrders: number;
   completedOrders: number;
@@ -25,7 +24,6 @@ export interface DashboardReport {
   byCity: NamedValue[];
 }
 
-// /dashboard/performance
 export interface PerformanceDay {
   date: string;
   label: string;
@@ -71,7 +69,6 @@ export interface ReportsRepository {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Dia inteiro: do início do primeiro dia ao fim do último (o filtro de data do web faz igual).
 export const wholeDays = (a: Date, b: Date): DateRange => {
   const [first, last] = a <= b ? [a, b] : [b, a];
   return {
@@ -90,7 +87,6 @@ export const rangeKey = ({ start, end }: DateRange) => ({
 
 export const averageTicket = (revenue: number, count: number) => (count > 0 ? revenue / count : 0);
 
-// Relatório de entregas: mesmos números da tela "Relatórios das Entregas" do web.
 export interface DeliverymanStats {
   key: string;
   name: string;

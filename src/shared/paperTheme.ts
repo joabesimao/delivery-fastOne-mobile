@@ -7,7 +7,6 @@ import {
 } from "react-native-paper";
 import { fontFamily, type ColorScheme, type ThemeColors } from "./theme";
 
-// Família por variante do Material 3: títulos em semibold, rótulos em medium.
 const variantFamily: Record<MD3TypescaleKey, string> = {
   displayLarge: fontFamily.semibold,
   displayMedium: fontFamily.semibold,
@@ -26,7 +25,6 @@ const variantFamily: Record<MD3TypescaleKey, string> = {
   bodySmall: fontFamily.regular,
 };
 
-// O peso já vem da família; fontWeight "400" evita negrito sintético no Android.
 const fonts = configureFonts({
   config: Object.fromEntries(
     Object.entries(variantFamily).map(([variant, family]) => [
@@ -36,12 +34,10 @@ const fonts = configureFonts({
   ),
 });
 
-// Tema do Paper montado só com os tokens do app: nada do roxo padrão do Material 3.
 export const buildPaperTheme = (scheme: ColorScheme, colors: ThemeColors): MD3Theme => {
   const base = scheme === "dark" ? MD3DarkTheme : MD3LightTheme;
   return {
     ...base,
-    // No MD3 o botão usa 5 × roundness: 1.2 dá 6px, o mesmo raio dos campos (radius.sm).
     roundness: 1.2,
     fonts,
     colors: {

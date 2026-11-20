@@ -18,7 +18,6 @@ export const useDelivery = (id: number) => {
     queryKey: queryKeys.delivery(id),
     queryFn: ({ signal }) => repository.getById(id, signal),
     enabled: Number.isInteger(id) && id > 0,
-    // Abre na hora com o que a lista já tem; a busca completa atualiza em seguida.
     initialData: () =>
       client.getQueryData<Delivery[]>(queryKeys.deliveryList)?.find((d) => d.id === id),
     initialDataUpdatedAt: () => client.getQueryState(queryKeys.deliveryList)?.dataUpdatedAt,

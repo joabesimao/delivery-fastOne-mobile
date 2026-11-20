@@ -13,11 +13,9 @@ import { useDateRange } from "./RangePicker";
 
 const STATUSES = Object.keys(rankingStatusLabels) as RankingStatus[];
 
-// "Relatório de ranking de entregadores" do web, com exportação em CSV.
 export function RankingScreen() {
   const { range, picker } = useDateRange(30);
   const [status, setStatus] = useState<RankingStatus>("all");
-  // A página vale só para o filtro em que foi escolhida: mudou período ou status, volta à 1ª.
   const filterKey = `${status}|${range.start.getTime()}|${range.end.getTime()}`;
   const [paging, setPaging] = useState({ key: filterKey, page: 1 });
   const page = paging.key === filterKey ? paging.page : 1;

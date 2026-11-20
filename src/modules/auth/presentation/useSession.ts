@@ -8,8 +8,6 @@ const { sessionManager } = container;
 const subscribe = (listener: () => void) => sessionManager.subscribe(listener);
 const getSnapshot = () => sessionManager.getState();
 
-// No logout as telas autenticadas ainda renderizam uma vez antes do guard redirecionar;
-// elas recebem a última sessão válida em vez de quebrar.
 let lastSession: Session | null = null;
 const getSessionSnapshot = () => {
   const { session } = sessionManager.getState();

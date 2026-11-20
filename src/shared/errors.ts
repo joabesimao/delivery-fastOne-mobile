@@ -1,6 +1,5 @@
 import { AppError, toAppError, type AppErrorKind } from "@/core/errors/AppError";
 
-// Nesses casos a mensagem do servidor é técnica ou inexistente: usa o texto padrão em português.
 const ALWAYS_DEFAULT: ReadonlySet<AppErrorKind> = new Set([
   "network",
   "timeout",

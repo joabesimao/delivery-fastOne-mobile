@@ -12,7 +12,6 @@ import { Alert, Text, View } from "react-native";
 import { BROADCAST_BODY_MAX, BROADCAST_TITLE_MAX } from "../domain/Notification";
 import { useBroadcastNotice } from "./hooks";
 
-// "Enviar aviso" do sino do painel web (só admin).
 export function BroadcastScreen() {
   const styles = useStyles();
   const router = useRouter();

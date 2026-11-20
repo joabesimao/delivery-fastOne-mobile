@@ -7,7 +7,6 @@ import { Text, View } from "react-native";
 import { TouchableRipple } from "react-native-paper";
 import { statusLabels, type Delivery, type DeliveryStatus } from "../domain/Delivery";
 
-// Mesmas cores do painel web.
 export const statusColors = (
   colors: ThemeColors,
 ): Record<DeliveryStatus, { fg: string; bg: string }> => ({
@@ -28,7 +27,6 @@ interface DeliveryCardProps {
   onPress: (id: number) => void;
 }
 
-// Linha da lista de entregas. O status já é o filtro da tela, então não se repete aqui.
 export const DeliveryCard = memo(function DeliveryCard({
   delivery,
   showDeliveryman,

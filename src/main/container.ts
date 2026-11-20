@@ -18,9 +18,6 @@ import { HttpSearchRepository } from "@/modules/search/infra/HttpSearchRepositor
 import { HttpAccountRepository } from "@/modules/users/infra/HttpAccountRepository";
 import { env } from "./env";
 
-// Único lugar que conhece as implementações concretas.
-
-// http e sessão dependem um do outro (refresh usa o http; o http pede o token à sessão).
 let sessionManager: SessionManager;
 
 const http = new FetchHttpClient({
@@ -36,7 +33,6 @@ sessionManager = new SessionManager(
   new StorageSessionStore(secureStorage),
 );
 
-// Evita laço de refresh quando o socket é recusado por outro motivo (ex.: conta sem loja).
 const SOCKET_REFRESH_COOLDOWN_MS = 30_000;
 let lastSocketRefreshAt = 0;
 

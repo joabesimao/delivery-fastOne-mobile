@@ -1,6 +1,5 @@
 import Svg, { G, Rect } from "react-native-svg";
 
-// Marca do FastOne: "F" itálico com traços de velocidade. Mesma geometria dos PNGs em assets/.
 export function Logo({
   size = 48,
   background,

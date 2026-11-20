@@ -72,7 +72,6 @@ export const cpfMask = (value: string = "") => {
 
 export const cpfDigits = (value: string = "") => onlyDigits(value).slice(0, 11);
 
-// Mesmo algoritmo dos dígitos verificadores usado no painel web.
 export const isValidCpf = (value: string = ""): boolean => {
   const d = cpfDigits(value);
   if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
@@ -90,7 +89,6 @@ export const formatCurrencyInput = (value: number) =>
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
-// Data local em AAAA-MM-DD (nome de arquivo, agrupamento por dia).
 export const isoDay = (date: Date) =>
   `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 
