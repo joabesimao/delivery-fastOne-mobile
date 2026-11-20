@@ -93,3 +93,6 @@ const pad2 = (n: number) => String(n).padStart(2, "0");
 // Data local em AAAA-MM-DD (nome de arquivo, agrupamento por dia).
 export const isoDay = (date: Date) =>
   `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+
+export const parseCivilDate = (value: string) =>
+  new Date(Number(value.slice(0, 4)), Number(value.slice(5, 7)) - 1, Number(value.slice(8, 10)));

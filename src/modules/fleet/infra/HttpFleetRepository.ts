@@ -1,6 +1,7 @@
 import type { HttpClient } from "@/core/http/HttpClient";
 import { parseResponse } from "@/core/http/parseResponse";
 import type { KeyValueStorage } from "@/core/storage/KeyValueStorage";
+import { isoDay, parseCivilDate } from "@/shared/format";
 import { z } from "zod";
 import type {
   FleetFilter,
@@ -74,7 +75,7 @@ const toFuelRefill = (dto: z.infer<typeof fuelRefillSchema>): FuelRefill => ({
   liters: dto.liters,
   pricePerLiter: dto.pricePerLiter ?? null,
   totalValue: dto.totalValue,
-  refillDate: new Date(dto.refillDate),
+  refillDate: parseCivilDate(dto.refillDate),
 });
 
 const toOilChange = (dto: z.infer<typeof oilChangeSchema>): OilChange => ({
@@ -85,7 +86,7 @@ const toOilChange = (dto: z.infer<typeof oilChangeSchema>): OilChange => ({
   deliverymanName: personName(dto.deliveryman),
   km: dto.km,
   nextChangeKm: dto.nextChangeKm,
-  changeDate: new Date(dto.changeDate),
+  changeDate: parseCivilDate(dto.changeDate),
 });
 
 const vehicleBody = (input: VehicleInput) => ({
@@ -139,7 +140,7 @@ export class HttpFleetRepository implements FleetRepository {
     await this.http.request({
       method: "POST",
       path: "/fuel-refill",
-      body: { ...input, refillDate: input.refillDate.toISOString() },
+      body: { ...input, refillDate: isoDay(input.refillDate) },
     });
   }
 
@@ -147,7 +148,7 @@ export class HttpFleetRepository implements FleetRepository {
     await this.http.request({
       method: "PUT",
       path: `/fuel-refill/${id}`,
-      body: { ...input, refillDate: input.refillDate.toISOString() },
+      body: { ...input, refillDate: isoDay(input.refillDate) },
     });
   }
 
@@ -159,7 +160,7 @@ export class HttpFleetRepository implements FleetRepository {
     await this.http.request({
       method: "POST",
       path: "/oil-change-log",
-      body: { ...input, changeDate: input.changeDate.toISOString() },
+      body: { ...input, changeDate: isoDay(input.changeDate) },
     });
   }
 
@@ -167,7 +168,7 @@ export class HttpFleetRepository implements FleetRepository {
     await this.http.request({
       method: "PUT",
       path: `/oil-change-log/${id}`,
-      body: { ...input, changeDate: input.changeDate.toISOString() },
+      body: { ...input, changeDate: isoDay(input.changeDate) },
     });
   }
 

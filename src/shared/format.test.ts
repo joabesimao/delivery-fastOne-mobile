@@ -5,6 +5,7 @@ import {
   formatRelative,
   isoDay,
   isValidCpf,
+  parseCivilDate,
   parseDecimal,
   phoneMask,
 } from "./format";
@@ -53,5 +54,10 @@ describe("format", () => {
 
   it("formata o dia local em AAAA-MM-DD", () => {
     expect(isoDay(new Date(2026, 0, 5, 23, 59))).toBe("2026-01-05");
+  });
+
+  it("lê a data civil sem deslocar o dia pelo fuso", () => {
+    expect(isoDay(parseCivilDate("2026-11-20T00:00:00.000Z"))).toBe("2026-11-20");
+    expect(isoDay(parseCivilDate("2026-01-01"))).toBe("2026-01-01");
   });
 });
