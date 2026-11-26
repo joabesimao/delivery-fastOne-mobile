@@ -47,9 +47,24 @@ export const formatDate = (value: Date | string) => {
   return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
 };
 
+export const BUSINESS_TIME_ZONE = "America/Sao_Paulo";
+
+const businessDateTime = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: BUSINESS_TIME_ZONE,
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
 export const formatDateTime = (value: Date | string) => {
   const date = typeof value === "string" ? new Date(value) : value;
-  return `${formatDate(date)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  const parts = Object.fromEntries(
+    businessDateTime.formatToParts(date).map(({ type, value: part }) => [type, part]),
+  );
+  return `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}`;
 };
 
 export const formatRelative = (value: Date | string, now: Date = new Date()) => {

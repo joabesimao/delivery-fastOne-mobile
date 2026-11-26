@@ -2,6 +2,7 @@ import {
   cpfMask,
   currencyInputMask,
   formatCurrencyInput,
+  formatDateTime,
   formatRelative,
   isoDay,
   isValidCpf,
@@ -59,5 +60,10 @@ describe("format", () => {
   it("lê a data civil sem deslocar o dia pelo fuso", () => {
     expect(isoDay(parseCivilDate("2026-11-20T00:00:00.000Z"))).toBe("2026-11-20");
     expect(isoDay(parseCivilDate("2026-01-01"))).toBe("2026-01-01");
+  });
+
+  it("formata data e hora no fuso de São Paulo", () => {
+    expect(formatDateTime(new Date("2026-11-27T01:30:00.000Z"))).toBe("26/11/2026 22:30");
+    expect(formatDateTime("2026-11-26T03:05:00.000Z")).toBe("26/11/2026 00:05");
   });
 });

@@ -1,6 +1,7 @@
 import type { HttpClient } from "@/core/http/HttpClient";
 import { parseResponse } from "@/core/http/parseResponse";
 import { DELIVERY_STATUSES } from "@/modules/deliveries/domain/Delivery";
+import { isoDay } from "@/shared/format";
 import { z } from "zod";
 import type { Overview, OverviewRepository } from "../domain/Overview";
 
@@ -30,7 +31,7 @@ export class HttpOverviewRepository implements OverviewRepository {
     const data = await this.http.request({
       method: "GET",
       path: "/dashboard/overview",
-      query: { startDate: range.start.toISOString(), endDate: range.end.toISOString() },
+      query: { startDate: isoDay(range.start), endDate: isoDay(range.end) },
       signal,
     });
     const parsed = parseResponse(overviewSchema, data);
