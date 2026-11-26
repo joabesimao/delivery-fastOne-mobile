@@ -1,5 +1,6 @@
 import type { HttpClient } from "@/core/http/HttpClient";
 import { parseResponse } from "@/core/http/parseResponse";
+import { isoDay } from "@/shared/format";
 import { z } from "zod";
 import type {
   DashboardReport,
@@ -46,8 +47,8 @@ const rankingSchema = z.object({
 });
 
 const rangeQuery = ({ start, end }: DateRange) => ({
-  startDate: start.toISOString(),
-  endDate: end.toISOString(),
+  startDate: isoDay(start),
+  endDate: isoDay(end),
 });
 
 export class HttpReportsRepository implements ReportsRepository {
